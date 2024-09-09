@@ -6,7 +6,9 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+//app.use(express.json());
+
+const router = express.Router();
 
 const dbConfig = {
     host: process.env.DB_HOST,
@@ -21,7 +23,7 @@ async function getConnection() {
     const connection = await mysql.createConnection(dbConfig);
     return connection;
 }
-
+/*
 // Endpoint para obtener todos los autos
 app.get('/api/autos', async (req, res) => {
     try {
@@ -95,3 +97,18 @@ app.post('/api/autos', async (req, res) => {
 
 // Exportar la app para Vercel
 export default app;
+*/
+
+router.get('/api/autos', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM autos');
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener autos:', err);
+        res.status(500).json({ error: 'Error al obtener autos' });
+    }
+});
+
+app.use('index.js', router);
+export const handler = severless(app);
