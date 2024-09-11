@@ -95,20 +95,52 @@ app.post('/api/autos', async (req, res) => {
     }
 });
 
-// Exportar la app para Vercel
-export default app;
+// ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
-/*
-router.get('/api/autos', async (req, res) => {
+// Endpoint para obtener todos los mecánicos
+app.get('/api/mecanicos', async (req, res) => {
     try {
         const db = await getConnection();
-        const [results] = await db.query('SELECT * FROM autos');
+        const [results] = await db.query('SELECT * FROM mecanicos');
         res.json(results);
     } catch (err) {
-        console.error('Error al obtener autos:', err);
-        res.status(500).json({ error: 'Error al obtener autos' });
+        console.error('Error al obtener mecánicos:', err);
+        res.status(500).json({ error: 'Error al obtener mecánicos' });
     }
 });
 
-app.use('index.js', router);
-export const handler = severless(app);*/
+// Endpoint para obtener un mecánico por ID
+app.get('/api/mecanicos/:id', async (req, res) => {
+    const mecanicoId = req.params.id;
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM mecanicos WHERE id = ?', [mecanicoId]);
+        if (results.length === 0) {
+            res.status(404).json({ error: 'Mecánico no encontrado' });
+            return;
+        }
+        res.json(results[0]);
+    } catch (err) {
+        console.error('Error al obtener mecánico:', err);
+        res.status(500).json({ error: 'Error al obtener mecánico' });
+    }
+});
+
+// Endpoint para agregar un nuevo mecánico
+app.post('/api/mecanicos', async (req, res) => {
+    const { nombre, apellido, telefono, correo_electronico, especialidad } = req.body;
+    try {
+        const db = await getConnection();
+        const query = 'INSERT INTO mecanicos (nombre, apellido, telefono, correo_electronico, especialidad) VALUES (?, ?, ?, ?, ?)';
+        const [result] = await db.query(query, [nombre, apellido, telefono, correo_electronico, especialidad]);
+        res.json({ id: result.insertId, nombre, apellido, telefono, correo_electronico, especialidad });
+    } catch (err) {
+        console.error('Error al agregar mecánico:', err);
+        res.status(500).json({ error: 'Error al agregar mecánico' });
+    }
+});
+
+
+// Exportar la app para Vercel
+export default app;
+
