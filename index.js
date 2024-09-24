@@ -167,12 +167,12 @@ app.post('/api/bills', async (req, res) => {
 });
 
 // Endpoint para actualizar el estado de un gasto
-app.patch('/api/gastos/:id', async (req, res) => {
+app.patch('/api/bills/:id', async (req, res) => {
     const gastoId = req.params.id;
     const { estado } = req.body;
     try {
         const db = await getConnection();
-        const query = 'UPDATE bills SET estado = ? WHERE id = ?'; // Asegúrate de que el nombre de la tabla sea "bills"
+        const query = 'UPDATE bills SET estado = ? WHERE id = ?';
         const [result] = await db.query(query, [estado, gastoId]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Gasto no encontrado' });
@@ -183,6 +183,7 @@ app.patch('/api/gastos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar estado del gasto' });
     }
 });
+
 
 
 
