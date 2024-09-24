@@ -184,6 +184,21 @@ app.patch('/api/bills/:id', async (req, res) => {
     }
 });
 
+// Endpoint para obtener un gasto por ID
+app.get('/api/bills/:id', async (req, res) => {
+    const gastoId = req.params.id;
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM bills WHERE id = ?', [gastoId]);
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Gasto no encontrado' });
+        }
+        res.json(results[0]);
+    } catch (err) {
+        console.error('Error al obtener gasto:', err);
+        res.status(500).json({ error: 'Error al obtener gasto' });
+    }
+});
 
 
 
