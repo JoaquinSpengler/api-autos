@@ -140,6 +140,33 @@ app.post('/api/mecanicos', async (req, res) => {
     }
 });
 
+// Endpoint para obtener todos los bills
+app.get('/api/bills', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM bills');
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener bills:', err);
+        res.status(500).json({ error: 'Error al obtener bills' });
+    }
+});
+
+// Endpoint para agregar un nuevo bill
+app.post('/api/bills', async (req, res) => {
+    const { descripcion, monto, fecha, estado } = req.body;
+    try {
+        const db = await getConnection();
+        const query = 'INSERT INTO bills (descripcion, monto, fecha, estado) VALUES (?, ?, ?, ?)';
+        const [result] = await db.query(query, [descripcion, monto, fecha, estado]);
+        res.json({ id: result.insertId, descripcion, monto, fecha, estado });
+    } catch (err) {
+        console.error('Error al agregar bill:', err);
+        res.status(500).json({ error: 'Error al agregar bill' });
+    }
+});
+
+
 
 // Exportar la app para Vercel
 export default app;
