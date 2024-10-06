@@ -202,7 +202,7 @@ app.get('/api/bills/:id', async (req, res) => {
 
 // Endpoint para agregar una nueva ubicación de un conductor
 app.post('/api/ubicacion-conductor', async (req, res) => {
-    const { id_pos, id_conductor, fecha_hora, latitud, longitud } = req.body;
+    const {id_conductor, fecha_hora, latitud, longitud } = req.body;
 
     try {
         const db = await getConnection();
