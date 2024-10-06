@@ -200,7 +200,30 @@ app.get('/api/bills/:id', async (req, res) => {
     }
 });
 
+// Endpoint para agregar una nueva ubicación de un conductor
+app.post('/api/ubicacion-conductor', async (req, res) => {
+    const { id_pos, id_conductor, fecha_hora, latitud, longitud } = req.body;
 
+    try {
+        const db = await getConnection();
+        const query = `INSERT INTO ubicacion_conductor (id_pos, id_conductor, fecha_hora, latitud, longitud)
+            VALUES (?, ?, ?, ?, ?)`;
+        ;
+        const [result] = await db.query(query, [id_pos, id_conductor, fecha_hora, latitud, longitud]);
+
+        res.json({
+            message: 'Ubicación agregada exitosamente',
+            id_pos,
+            id_conductor,
+            fecha_hora,
+            latitud,
+            longitud
+        });
+    } catch (err) {
+        console.error('Error al agregar ubicación:', err);
+        res.status(500).json({ error: 'Error al agregar ubicación' });
+    }
+});
 
 // Exportar la app para Vercel
 export default app;
