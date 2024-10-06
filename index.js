@@ -206,14 +206,13 @@ app.post('/api/ubicacion-conductor', async (req, res) => {
 
     try {
         const db = await getConnection();
-        const query = `INSERT INTO ubicacion_conductor (id_pos, id_conductor, fecha_hora, latitud, longitud)
-            VALUES (1, 1, ?, ?, ?)`;
+        const query = `INSERT INTO ubicacion_conductor (id_conductor, fecha_hora, latitud, longitud)
+            VALUES (1, ?, ?, ?)`;
         ;
-        const [result] = await db.query(query, [id_pos, id_conductor, fecha_hora, latitud, longitud]);
+        const [result] = await db.query(query, [id_conductor, fecha_hora, latitud, longitud]);
 
         res.json({
             message: 'Ubicación agregada exitosamente',
-            id_pos,
             id_conductor,
             fecha_hora,
             latitud,
