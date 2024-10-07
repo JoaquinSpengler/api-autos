@@ -230,7 +230,7 @@ app.get('/api/ubicacion-conductor/:id', async (req, res) => {
     const idConductor = req.params.id;
     try {
         const db = await getConnection();
-        const [results] = await db.query('SELECT latitud, longitud FROM ubicacion_conductor WHERE id_conductor = ? ORDER BY fecha_hora DESC LIMIT 1', [idConductor]);
+        const [results] = await db.query('SELECT latitud, longitud FROM ubicacion_conductor WHERE id_conductor = 1 ORDER BY fecha_hora DESC LIMIT 1', [idConductor]);
         if (results.length === 0) {
             return res.status(404).json({ error: 'Ubicación no encontrada' });
         }
