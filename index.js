@@ -226,23 +226,24 @@ app.post('/api/ubicacion-conductor', async (req, res) => {
     }
 });
 // Endpoint para obtener la última ubicación de un conductor específico
+// Endpoint para obtener la última ubicación del conductor con id_conductor = 1
 app.get('/conductores/:id/ubicacion', (req, res) => {
-    const conductorId = req.params.id;
     const sql = 'SELECT latitud, longitud FROM ubicacion_conductor WHERE id_conductor = 1 ORDER BY fecha_hora DESC LIMIT 1';
     
-    db.query(sql, [conductorId], (err, result) => {
-      if (err) {
-        console.error('Error al obtener la ubicación:', err);
-        res.status(500).send('Error del servidor');
-      } else {
-        if (result.length > 0) {
-          res.json(result[0]); // Devolver la última ubicación
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error al obtener la ubicación:', err);
+            res.status(500).send('Error del servidor');
         } else {
-          res.status(404).send('Ubicación no encontrada');
+            if (result.length > 0) {
+                res.json(result[0]); // Devolver la última ubicación
+            } else {
+                res.status(404).send('Ubicación no encontrada');
+            }
         }
-      }
     });
-  });
+});
+
   
 // Exportar la app para Vercel
 export default app;
