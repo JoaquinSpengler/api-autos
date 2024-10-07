@@ -66,6 +66,8 @@ app.get('/api/autos/:id/mantenimientos', async (req, res) => {
     }
 });
 
+
+
 // Endpoint para agregar un nuevo mantenimiento
 app.post('/api/autos/:id/mantenimientos', async (req, res) => {
     const autoId = req.params.id;
