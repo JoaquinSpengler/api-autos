@@ -226,7 +226,7 @@ app.post('/api/ubicacion-conductor', async (req, res) => {
     }
 });
 // Endpoint para obtener la última ubicación de un conductor
-app.get('/api/ubicacion-conductor/:id', async (req, res) => {
+app.get('/api/ubicacion-conductor', async (req, res) => {
     const idConductor = req.params.id;
     try {
         const db = await getConnection();
