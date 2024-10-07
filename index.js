@@ -225,24 +225,22 @@ app.post('/api/ubicacion-conductor', async (req, res) => {
         res.status(500).json({ error: 'Error al agregar ubicación' });
     }
 });
-// Endpoint para obtener la última ubicación de un conductor específico
-// Endpoint para obtener la última ubicación del conductor con id_conductor = 1
-app.get('/conductores/:id/ubicacion', (req, res) => {
-    const sql = 'SELECT latitud, longitud FROM ubicacion_conductor WHERE id_conductor = 1 ORDER BY fecha_hora DESC LIMIT 1';
-    
-    db.query(sql, (err, result) => {
-        if (err) {
-            console.error('Error al obtener la ubicación:', err);
-            res.status(500).send('Error del servidor');
-        } else {
-            if (result.length > 0) {
-                res.json(result[0]); // Devolver la última ubicación
-            } else {
-                res.status(404).send('Ubicación no encontrada');
-            }
+// Endpoint para obtener la última ubicación de un conductor
+app.get('/api/ubicacion-conductor/:id', async (req, res) => {
+    const idConductor = req.params.id;
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT latitud, longitud FROM ubicacion_conductor WHERE id_conductor = ? ORDER BY fecha_hora DESC LIMIT 1', [idConductor]);
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Ubicación no encontrada' });
         }
-    });
+        res.json(results[0]); // Devuelve la última ubicación
+    } catch (err) {
+        console.error('Error al obtener la ubicación del conductor:', err);
+        res.status(500).json({ error: 'Error al obtener la ubicación' });
+    }
 });
+
 
   
 // Exportar la app para Vercel
