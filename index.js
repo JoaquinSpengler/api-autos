@@ -240,7 +240,51 @@ app.get('/api/ubicacion-conductor', async (req, res) => {
     }
 });
 
-
+app.get('/api/vehiculos', async (req, res) => {
+    const { disponibilidad, fechaDesde, fechaHasta } = req.query;
+  
+    let query;
+    let params = [fechaDesde, fechaHasta];
+  
+    // Filtrar por disponibilidad
+    if (disponibilidad === 'reservados') {
+      // Obtener vehículos que están reservados en el rango de fechas
+      query = `
+        SELECT * FROM autos 
+        WHERE EXISTS (
+          SELECT 1 
+          FROM alquileres 
+          WHERE auto_id = autos.id 
+            AND (fecha_alquiler BETWEEN ? AND ?)
+        )
+      `;
+    } else if (disponibilidad === 'no reservados') {
+      // Obtener vehículos que NO están reservados en el rango de fechas
+      query = `
+        SELECT * FROM autos 
+        WHERE NOT EXISTS (
+          SELECT 1 
+          FROM alquileres 
+          WHERE auto_id = autos.id 
+            AND (fecha_alquiler BETWEEN ? AND ?)
+        )
+      `;
+    } else {
+      // Si no se especifica disponibilidad, devuelve todos los vehículos
+      query = 'SELECT * FROM autos';
+      params = []; // No se necesitan parámetros
+    }
+  
+    try {
+      const db = await getConnection();
+      const [results] = await db.query(query, params);
+      res.json(results);
+    } catch (err) {
+      console.error('Error al obtener vehículos:', err);
+      res.status(500).json({ error: 'Error al obtener vehículos' });
+    }
+  });
+  
   
 // Exportar la app para Vercel
 export default app;
