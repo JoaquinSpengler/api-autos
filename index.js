@@ -258,8 +258,7 @@ app.get('/api/vehiculos', async (req, res) => {
         WHERE EXISTS (
           SELECT 1 FROM alquiler
           WHERE alquiler.auto_id = autos.id
-          AND alquiler.fecha_inicio <= ?
-          AND alquiler.fecha_fin >= ?
+          AND (alquiler.fecha_inicio between ? and ?)
         )
       `;
     } else if (disponibilidad === 'no reservados') {
@@ -268,8 +267,7 @@ app.get('/api/vehiculos', async (req, res) => {
         WHERE NOT EXISTS (
           SELECT 1 FROM alquiler
           WHERE alquiler.auto_id = autos.id
-          AND alquiler.fecha_inicio <= ?
-          AND alquiler.fecha_fin >= ?
+          AND (alquiler.fecha_inicio between ? and ?)
         )
       `;
     } else {
