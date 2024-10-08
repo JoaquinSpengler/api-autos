@@ -288,6 +288,20 @@ app.get('/api/vehiculos', async (req, res) => {
   });
   
   
+// Endpoint para obtener todos los conductores
+app.get('/api/conductores', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM conductores'); // Asegúrate de que la tabla se llame 'conductores'
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener conductores:', err);
+        res.status(500).json({ error: 'Error al obtener conductores' });
+    }
+});
+
+
+
 // Exportar la app para Vercel
 export default app;
 
