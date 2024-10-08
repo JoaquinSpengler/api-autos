@@ -243,36 +243,38 @@ app.get('/api/ubicacion-conductor', async (req, res) => {
 app.get('/api/vehiculos', async (req, res) => {
     const { disponibilidad, fechaDesde, fechaHasta } = req.query;
   
+    // Verifica si las fechas están definidas
+    if (!fechaDesde || !fechaHasta) {
+      return res.status(400).json({ error: "Las fechas son obligatorias" });
+    }
+  
     let query;
     let params = [fechaDesde, fechaHasta];
   
-    // Filtrar por disponibilidad
+    // Verificar disponibilidad
     if (disponibilidad === 'reservados') {
-      // Obtener vehículos que están reservados en el rango de fechas
       query = `
-        SELECT * FROM autos 
+        SELECT * FROM autos
         WHERE EXISTS (
-          SELECT 1 
-          FROM alquileres 
-          WHERE auto_id = autos.id 
-            AND (fecha_alquiler BETWEEN ? AND ?)
+          SELECT 1 FROM alquiler
+          WHERE alquiler.auto_id = autos.id
+          AND alquiler.fecha_inicio <= ?
+          AND alquiler.fecha_fin >= ?
         )
       `;
     } else if (disponibilidad === 'no reservados') {
-      // Obtener vehículos que NO están reservados en el rango de fechas
       query = `
-        SELECT * FROM autos 
+        SELECT * FROM autos
         WHERE NOT EXISTS (
-          SELECT 1 
-          FROM alquileres 
-          WHERE auto_id = autos.id 
-            AND (fecha_alquiler BETWEEN ? AND ?)
+          SELECT 1 FROM alquiler
+          WHERE alquiler.auto_id = autos.id
+          AND alquiler.fecha_inicio <= ?
+          AND alquiler.fecha_fin >= ?
         )
       `;
     } else {
-      // Si no se especifica disponibilidad, devuelve todos los vehículos
+      // En caso de que no se especifique disponibilidad
       query = 'SELECT * FROM autos';
-      params = []; // No se necesitan parámetros
     }
   
     try {
