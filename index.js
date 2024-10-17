@@ -390,6 +390,7 @@ app.put('/api/proveedores/:id/inactivo', async (req, res) => {
     }
 });
 
+
 // Exportar la app para Vercel
 export default app;
 
