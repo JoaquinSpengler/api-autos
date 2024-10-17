@@ -494,6 +494,51 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
     }
 });
 
+
+
+
+// ----------------------------------- FLOTA ENDPOINTS -----------------------------------
+
+// Endpoint para obtener todas las flotas
+app.get('/api/flotas', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT f.id AS flota_id, f.nombre, a.id AS auto_id, a.marca, a.modelo, a.kilometros, a.nro_patente, a.anio FROM flotas f LEFT JOIN flota_autos fa ON f.id = fa.flota_id LEFT JOIN autos a ON fa.auto_id = a.id');
+
+        // Agrupar los resultados por flota
+        const flotas = results.reduce((acc, row) => {
+            const { flota_id, nombre, auto_id, marca, modelo, kilometros, nro_patente, anio } = row;
+            
+            if (!acc[flota_id]) {
+                acc[flota_id] = {
+                    id: flota_id,
+                    nombre: nombre,
+                    autos: []
+                };
+            }
+
+            if (auto_id) {
+                acc[flota_id].autos.push({
+                    id: auto_id,
+                    marca,
+                    modelo,
+                    kilometros,
+                    nro_patente,
+                    anio
+                });
+            }
+
+            return acc;
+        }, {});
+
+        res.json(Object.values(flotas));
+    } catch (err) {
+        console.error('Error al obtener las flotas:', err);
+        res.status(500).json({ error: 'Error al obtener las flotas' });
+    }
+});
+
+
 // Exportar la app para Vercel
 export default app;
 
