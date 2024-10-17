@@ -474,6 +474,26 @@ app.put('/api/productos/:id', async (req, res) => {
     }
 });
 
+// Endpoint para pasar un producto a estado inactivo
+app.put('/api/productos/:id/inactivo', async (req, res) => {
+    const productoId = req.params.id;
+
+    try {
+        const db = await getConnection();
+        const query = 'UPDATE productos SET activo = false WHERE id_producto = ?';
+        const [result] = await db.query(query, [productoId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        res.json({ message: 'Producto pasado a estado inactivo' });
+    } catch (err) {
+        console.error('Error al pasar producto a estado inactivo:', err);
+        res.status(500).json({ error: 'Error al pasar producto a estado inactivo' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
