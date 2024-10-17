@@ -449,6 +449,31 @@ app.get('/api/productos/:id', async (req, res) => {
     }
 });
 
+// Endpoint para modificar los datos de un producto
+app.put('/api/productos/:id', async (req, res) => {
+    const productoId = req.params.id;
+    const { nombre, marca, modelo, categoria, cantidad, activo } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            UPDATE productos 
+            SET nombre = ?, marca = ?, modelo = ?, categoria = ?, cantidad = ?, activo = ? 
+            WHERE id_producto = ?
+        `;
+        const [result] = await db.query(query, [nombre, marca, modelo, categoria, cantidad, activo, productoId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        res.json({ message: 'Producto actualizado exitosamente' });
+    } catch (err) {
+        console.error('Error al actualizar producto:', err);
+        res.status(500).json({ error: 'Error al actualizar producto' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
