@@ -298,6 +298,10 @@ app.get('/api/conductores', async (req, res) => {
     }
 });
 
+
+// ----------------------------------- PROOVEDOR ENDPOINTS -----------------------------------
+
+
 // Endpoint para obtener todos los proveedores
 app.get('/api/proveedores', async (req, res) => {
     try {
@@ -390,6 +394,22 @@ app.put('/api/proveedores/:id/inactivo', async (req, res) => {
     }
 });
 
+
+// ----------------------------------- PRODUCTO ENDPOINTS -----------------------------------
+
+
+
+// Endpoint para obtener todos los productos
+app.get('/api/productos', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM productos');
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener productos:', err);
+        res.status(500).json({ error: 'Error al obtener productos' });
+    }
+});
 
 // Exportar la app para Vercel
 export default app;
