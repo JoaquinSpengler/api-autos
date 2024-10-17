@@ -562,7 +562,7 @@ app.post('/api/flotas', async (req, res) => {
         res.status(500).json({ error: 'Error al crear la flota' });
     }
 });
-g
+
 // Exportar la app para Vercel
 export default app;
 
