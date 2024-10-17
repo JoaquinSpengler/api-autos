@@ -351,6 +351,25 @@ app.put('/api/proveedores/:id', async (req, res) => {
     }
 });
 
+// Endpoint para agregar un nuevo proveedor
+app.post('/api/proveedores', async (req, res) => {
+    const { nombre, cuil, email, direccion, telefono, activo } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            INSERT INTO proveedores (nombre, cuil, email, direccion, telefono, activo) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        const [result] = await db.query(query, [nombre, cuil, email, direccion, telefono, activo]);
+
+        res.status(201).json({ id: result.insertId, nombre, cuil, email, direccion, telefono, activo });
+    } catch (err) {
+        console.error('Error al agregar proveedor:', err);
+        res.status(500).json({ error: 'Error al agregar proveedor' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
