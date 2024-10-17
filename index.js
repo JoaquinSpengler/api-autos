@@ -326,6 +326,31 @@ app.get('/api/proveedores/:id', async (req, res) => {
     }
 });
 
+// Endpoint para actualizar un proveedor por ID
+app.put('/api/proveedores/:id', async (req, res) => {
+    const proveedorId = req.params.id;
+    const { nombre, cuil, email, direccion, telefono, activo } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            UPDATE proveedores 
+            SET nombre = ?, cuil = ?, email = ?, direccion = ?, telefono = ?, activo = ? 
+            WHERE id_proveedor = ?
+        `;
+        const [result] = await db.query(query, [nombre, cuil, email, direccion, telefono, activo, proveedorId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Proveedor no encontrado' });
+        }
+
+        res.json({ id: proveedorId, nombre, cuil, email, direccion, telefono, activo });
+    } catch (err) {
+        console.error('Error al actualizar proveedor:', err);
+        res.status(500).json({ error: 'Error al actualizar proveedor' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
