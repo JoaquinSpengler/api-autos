@@ -411,6 +411,25 @@ app.get('/api/productos', async (req, res) => {
     }
 });
 
+// Endpoint para agregar un nuevo producto
+app.post('/api/productos', async (req, res) => {
+    const { nombre, marca, modelo, categoria, cantidad, activo } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            INSERT INTO productos (nombre, marca, modelo, categoria, cantidad, activo) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        const [result] = await db.query(query, [nombre, marca, modelo, categoria, cantidad, activo]);
+
+        res.status(201).json({ id: result.insertId, nombre, marca, modelo, categoria, cantidad, activo });
+    } catch (err) {
+        console.error('Error al agregar producto:', err);
+        res.status(500).json({ error: 'Error al agregar producto' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
