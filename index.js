@@ -519,7 +519,7 @@ app.get('/api/flotas/:id/autos', async (req, res) => {
 });
 
 // Endpoint para crear una nueva flota
-app.post('/api/flotas', async (req, res) => {
+app.post('/api/flotas-crear', async (req, res) => {
     const { nombre } = req.body;
 
     if (!nombre) {
@@ -540,6 +540,19 @@ app.post('/api/flotas', async (req, res) => {
     } catch (err) {
         console.error('Error al crear la flota:', err);
         res.status(500).json({ error: 'Error al crear la flota' });
+    }
+});
+
+// Endpoint para obtener todas las flotas
+app.get('/api/flotas', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT id, nombre, create_time FROM flotas');
+
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener las flotas:', err);
+        res.status(500).json({ error: 'Error al obtener las flotas' });
     }
 });
 
