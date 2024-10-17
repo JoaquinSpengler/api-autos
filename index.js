@@ -430,6 +430,25 @@ app.post('/api/productos', async (req, res) => {
     }
 });
 
+// Endpoint para obtener un producto por ID
+app.get('/api/productos/:id', async (req, res) => {
+    const productoId = req.params.id;
+
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM productos WHERE id_producto = ?', [productoId]);
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        res.json(results[0]);
+    } catch (err) {
+        console.error('Error al obtener producto:', err);
+        res.status(500).json({ error: 'Error al obtener producto' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
