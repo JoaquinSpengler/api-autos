@@ -499,47 +499,22 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
 
-// Endpoint para obtener todas las flotas
-app.get('/api/flotas', async (req, res) => {
+// Endpoint para obtener todos los autos que pertenecen a una flota
+app.get('/api/flotas/:id/autos', async (req, res) => {
+    const flotaId = req.params.id;
+
     try {
         const db = await getConnection();
         const [results] = await db.query(`
-            SELECT f.id AS flota_id, f.nombre AS flota_nombre, 
-                   a.id AS auto_id, a.marca, a.modelo, a.kilometraje, 
-                   a.nro_patente, a.anio
-            FROM flotas f
-            LEFT JOIN autos a ON f.id = a.flota_id
-        `);
+            SELECT a.id, a.marca, a.modelo, a.kilometraje, a.nro_patente, a.anio
+            FROM autos a
+            WHERE a.flota_id = ?
+        `, [flotaId]);
 
-        const flotas = results.reduce((acc, row) => {
-            const { flota_id, flota_nombre, auto_id, marca, modelo, kilometraje, nro_patente, anio } = row;
-            
-            if (!acc[flota_id]) {
-                acc[flota_id] = {
-                    id: flota_id,
-                    nombre: flota_nombre,
-                    autos: []
-                };
-            }
-
-            if (auto_id) {
-                acc[flota_id].autos.push({
-                    id: auto_id,
-                    marca,
-                    modelo,
-                    kilometraje,
-                    nro_patente,
-                    anio
-                });
-            }
-
-            return acc;
-        }, {});
-
-        res.json(Object.values(flotas));
+        res.json(results);
     } catch (err) {
-        console.error('Error al obtener las flotas:', err);
-        res.status(500).json({ error: 'Error al obtener las flotas' });
+        console.error('Error al obtener los autos de la flota:', err);
+        res.status(500).json({ error: 'Error al obtener los autos de la flota' });
     }
 });
 
