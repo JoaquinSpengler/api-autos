@@ -370,6 +370,26 @@ app.post('/api/proveedores', async (req, res) => {
     }
 });
 
+// Endpoint para pasar un proveedor a estado inactivo
+app.put('/api/proveedores/:id/inactivo', async (req, res) => {
+    const proveedorId = req.params.id;
+
+    try {
+        const db = await getConnection();
+        const query = 'UPDATE proveedores SET activo = false WHERE id_proveedor = ?';
+        const [result] = await db.query(query, [proveedorId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Proveedor no encontrado' });
+        }
+
+        res.json({ message: 'Proveedor pasado a estado inactivo' });
+    } catch (err) {
+        console.error('Error al pasar proveedor a estado inactivo:', err);
+        res.status(500).json({ error: 'Error al pasar proveedor a estado inactivo' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
