@@ -310,6 +310,21 @@ app.get('/api/proveedores', async (req, res) => {
     }
 });
 
+// Endpoint para obtener un proveedor por ID
+app.get('/api/proveedores/:id', async (req, res) => {
+    const proveedorId = req.params.id;
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM proveedores WHERE id_proveedor = ?', [proveedorId]);
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Proveedor no encontrado' });
+        }
+        res.json(results[0]);
+    } catch (err) {
+        console.error('Error al obtener proveedor:', err);
+        res.status(500).json({ error: 'Error al obtener proveedor' });
+    }
+});
 
 // Exportar la app para Vercel
 export default app;
