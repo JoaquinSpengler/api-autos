@@ -298,6 +298,17 @@ app.get('/api/conductores', async (req, res) => {
     }
 });
 
+// Endpoint para obtener todos los proveedores
+app.get('/api/proveedores', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM proveedores');
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener proveedores:', err);
+        res.status(500).json({ error: 'Error al obtener proveedores' });
+    }
+});
 
 
 // Exportar la app para Vercel
