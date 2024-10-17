@@ -538,7 +538,31 @@ app.get('/api/flotas', async (req, res) => {
     }
 });
 
+// Endpoint para crear una nueva flota
+app.post('/api/flotas', async (req, res) => {
+    const { nombre } = req.body;
 
+    if (!nombre) {
+        return res.status(400).json({ error: 'El nombre de la flota es obligatorio' });
+    }
+
+    try {
+        const db = await getConnection();
+        const [result] = await db.query('INSERT INTO flotas (nombre) VALUES (?)', [nombre]);
+
+        const nuevaFlota = {
+            id: result.insertId,
+            nombre: nombre,
+            create_time: new Date()
+        };
+
+        res.status(201).json(nuevaFlota);
+    } catch (err) {
+        console.error('Error al crear la flota:', err);
+        res.status(500).json({ error: 'Error al crear la flota' });
+    }
+});
+g
 // Exportar la app para Vercel
 export default app;
 
