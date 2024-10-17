@@ -503,16 +503,21 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
 app.get('/api/flotas', async (req, res) => {
     try {
         const db = await getConnection();
-        const [results] = await db.query('SELECT f.id AS flota_id, f.nombre, a.id AS auto_id, a.marca, a.modelo, a.kilometros, a.nro_patente, a.anio FROM flotas f LEFT JOIN flota_autos fa ON f.id = fa.flota_id LEFT JOIN autos a ON fa.auto_id = a.id');
+        const [results] = await db.query(`
+            SELECT f.id AS flota_id, f.nombre AS flota_nombre, 
+                   a.id AS auto_id, a.marca, a.modelo, a.kilometros, 
+                   a.nro_patente, a.anio
+            FROM flotas f
+            LEFT JOIN autos a ON f.id = a.flota_id
+        `);
 
-        // Agrupar los resultados por flota
         const flotas = results.reduce((acc, row) => {
-            const { flota_id, nombre, auto_id, marca, modelo, kilometros, nro_patente, anio } = row;
+            const { flota_id, flota_nombre, auto_id, marca, modelo, kilometros, nro_patente, anio } = row;
             
             if (!acc[flota_id]) {
                 acc[flota_id] = {
                     id: flota_id,
-                    nombre: nombre,
+                    nombre: flota_nombre,
                     autos: []
                 };
             }
@@ -537,6 +542,7 @@ app.get('/api/flotas', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener las flotas' });
     }
 });
+
 
 // Endpoint para crear una nueva flota
 app.post('/api/flotas', async (req, res) => {
