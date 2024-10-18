@@ -555,36 +555,29 @@ app.get('/api/flotas', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener las flotas' });
     }
 });
+
 // Endpoint para actualizar flota_id a null en la tabla de autos
-app.delete('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
+app.put('/api/autos/:autoId/flota', async (req, res) => {
     try {
-        const { flotaId, autoId } = req.params;
+        const { autoId } = req.params;
         const db = await getConnection();
 
-        console.log(`Intentando eliminar el auto con ID ${autoId} de la flota con ID ${flotaId}`);
-
-        // Verificar si el auto existe en la flota
-        const [selectResult] = await db.query('SELECT * FROM autos WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
-        if (selectResult.length === 0) {
-            console.log('Auto no encontrado en la flota');
-            return res.status(404).json({ error: 'Auto no encontrado en la flota' });
-        }
-
         // Actualizar flota_id a null en la tabla de autos
-        const [updateResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
+        const [updateResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE id = ?', [autoId]);
 
         if (updateResult.affectedRows === 0) {
             console.log('Error al actualizar el auto');
             return res.status(404).json({ error: 'Error al actualizar el auto' });
         }
 
-        console.log('Auto eliminado de la flota');
-        res.json({ message: 'Auto eliminado de la flota' });
+        console.log('flota_id actualizado a NULL para el auto');
+        res.json({ message: 'flota_id actualizado a NULL para el auto' });
     } catch (err) {
-        console.error('Error al eliminar el auto de la flota:', err);
-        res.status(500).json({ error: 'Error al eliminar el auto de la flota', details: err.message });
+        console.error('Error al actualizar el auto:', err);
+        res.status(500).json({ error: 'Error al actualizar el auto' });
     }
 });
+
 
 
 // Exportar la app para Vercel
