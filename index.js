@@ -556,6 +556,26 @@ app.get('/api/flotas', async (req, res) => {
     }
 });
 
+// Endpoint para eliminar un auto de una flota
+app.delete('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
+    try {
+        const { flotaId, autoId } = req.params;
+        const db = await getConnection();
+
+        // Eliminar el auto de la flota
+        const [result] = await db.query('DELETE FROM autos WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Auto no encontrado en la flota' });
+        }
+
+        res.json({ message: 'Auto eliminado de la flota' });
+    } catch (err) {
+        console.error('Error al eliminar el auto de la flota:', err);
+        res.status(500).json({ error: 'Error al eliminar el auto de la flota' });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
