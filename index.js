@@ -556,23 +556,23 @@ app.get('/api/flotas', async (req, res) => {
     }
 });
 
-// Endpoint para actualizar flota_id a null en la tabla de autos
-app.put('/api/autos/:autoId/flota', async (req, res) => {
+// Endpoint para actualizar flota_id a null para un auto específico en una flota específica
+app.put('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
     try {
-        const { autoId } = req.params;
+        const { flotaId, autoId } = req.params;
         const db = await getConnection();
 
-        console.log(`Actualizando flota_id a NULL para el auto con ID ${autoId}`);
+        console.log(`Actualizando flota_id a NULL para el auto con ID ${autoId} en la flota con ID ${flotaId}`);
 
-        // Verificar si el auto existe
-        const [selectResult] = await db.query('SELECT * FROM autos WHERE id = ?', [autoId]);
+        // Verificar si el auto existe en la flota
+        const [selectResult] = await db.query('SELECT * FROM autos WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
         if (selectResult.length === 0) {
-            console.log('Auto no encontrado');
-            return res.status(404).json({ error: 'Auto no encontrado' });
+            console.log('Auto no encontrado en la flota');
+            return res.status(404).json({ error: 'Auto no encontrado en la flota' });
         }
 
-        // Actualizar flota_id a null en la tabla de autos
-        const [updateResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE id = ?', [autoId]);
+        // Actualizar flota_id a null para el auto especificado
+        const [updateResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
 
         if (updateResult.affectedRows === 0) {
             console.log('Error al actualizar el auto');
