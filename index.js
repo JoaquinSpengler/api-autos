@@ -560,7 +560,7 @@ app.delete('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
     try {
         const { flotaId, autoId } = req.params;
         const db = await getConnection();
-        
+
         console.log(`Intentando eliminar el auto con ID ${autoId} de la flota con ID ${flotaId}`);
 
         // Verificar si el auto existe en la flota
