@@ -499,6 +499,18 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
 
+// Endpoint para obtener todas las flotas
+app.get('/api/flotas', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM flotas');
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener las flotas:', err);
+        res.status(500).json({ error: 'Error al obtener las flotas', details: err.message });
+    }
+});
+
 // Endpoint para obtener todos los autos que pertenecen a una flota
 app.get('/api/flotas/:id/autos', async (req, res) => {
     const flotaId = req.params.id;
@@ -543,19 +555,6 @@ app.post('/api/flotas-crear', async (req, res) => {
         res.status(500).json({ error: 'Error al crear la flota' });
     }
 });
-
-// Endpoint para obtener todas las flotas
-app.get('/api/flotas', async (req, res) => {
-    try {
-        const db = await getConnection();
-        const [results] = await db.query('SELECT * FROM flotas');
-        res.json(results);
-    } catch (err) {
-        console.error('Error al obtener las flotas:', err);
-        res.status(500).json({ error: 'Error al obtener las flotas', details: err.message });
-    }
-});
-
 
 // Endpoint para actualizar flota_id a null para un auto específico en una flota específica
 app.put('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
