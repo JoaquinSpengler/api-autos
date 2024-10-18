@@ -619,6 +619,30 @@ app.delete('/api/flotas/:flotaId', async (req, res) => {
     }
 });
 
+// Endpoint para actualizar el nombre de una flota por id
+app.put('/api/flotas/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nombre } = req.body;
+
+    if (!nombre) {
+        return res.status(400).json({ error: 'El nombre de la flota es obligatorio' });
+    }
+
+    try {
+        const db = await getConnection();
+        const [result] = await db.query('UPDATE flotas SET nombre = ? WHERE id = ?', [nombre, id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Flota no encontrada' });
+        }
+
+        res.json({ message: 'Nombre de la flota actualizado con éxito' });
+    } catch (err) {
+        console.error('Error al actualizar el nombre de la flota:', err);
+        res.status(500).json({ error: 'Error al actualizar el nombre de la flota', details: err.message });
+    }
+});
+
 // Exportar la app para Vercel
 export default app;
 
