@@ -518,15 +518,15 @@ app.get('/api/flotas/:id', async (req, res) => {
     }
 });
 
-// Endpoint para obtener todas las flotas
+// Endpoint para obtener todas las flotas activas
 app.get('/api/flotas', async (req, res) => {
     try {
         const db = await getConnection();
-        const [results] = await db.query('SELECT * FROM flotas');
+        const [results] = await db.query('SELECT * FROM flotas WHERE activo = 1');
         res.json(results);
     } catch (err) {
-        console.error('Error al obtener las flotas:', err);
-        res.status(500).json({ error: 'Error al obtener las flotas', details: err.message });
+        console.error('Error al obtener las flotas activas:', err);
+        res.status(500).json({ error: 'Error al obtener las flotas activas', details: err.message });
     }
 });
 
