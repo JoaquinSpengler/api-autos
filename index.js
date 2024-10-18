@@ -507,12 +507,13 @@ app.get('/api/flotas/:id', async (req, res) => {
         const [results] = await db.query('SELECT * FROM flotas WHERE id = ?', [id]);
         
         if (results.length === 0) {
+            console.error(`Flota con id ${id} no encontrada`);
             return res.status(404).json({ error: 'Flota no encontrada' });
         }
 
         res.json(results[0]);
     } catch (err) {
-        console.error('Error al obtener la flota:', err);
+        console.error('Error al obtener la flota:', err.message);
         res.status(500).json({ error: 'Error al obtener la flota', details: err.message });
     }
 });
