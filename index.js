@@ -581,6 +581,7 @@ app.delete('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
     }
 });
 
+
 // Exportar la app para Vercel
 export default app;
 
