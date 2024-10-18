@@ -562,6 +562,15 @@ app.put('/api/autos/:autoId/flota', async (req, res) => {
         const { autoId } = req.params;
         const db = await getConnection();
 
+        console.log(`Actualizando flota_id a NULL para el auto con ID ${autoId}`);
+
+        // Verificar si el auto existe
+        const [selectResult] = await db.query('SELECT * FROM autos WHERE id = ?', [autoId]);
+        if (selectResult.length === 0) {
+            console.log('Auto no encontrado');
+            return res.status(404).json({ error: 'Auto no encontrado' });
+        }
+
         // Actualizar flota_id a null en la tabla de autos
         const [updateResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE id = ?', [autoId]);
 
@@ -574,7 +583,7 @@ app.put('/api/autos/:autoId/flota', async (req, res) => {
         res.json({ message: 'flota_id actualizado a NULL para el auto' });
     } catch (err) {
         console.error('Error al actualizar el auto:', err);
-        res.status(500).json({ error: 'Error al actualizar el auto' });
+        res.status(500).json({ error: 'Error al actualizar el auto', details: err.message });
     }
 });
 
