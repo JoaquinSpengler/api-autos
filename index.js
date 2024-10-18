@@ -595,24 +595,24 @@ app.delete('/api/flotas/:flotaId', async (req, res) => {
         console.log(`Eliminando la flota con ID ${flotaId}`);
 
         // Actualizar flota_id a null en la tabla de autos para todos los autos de la flota
-        const [updateResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE flota_id = ?', [flotaId]);
+        const [updateAutosResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE flota_id = ?', [flotaId]);
 
-        if (updateResult.affectedRows === 0) {
+        if (updateAutosResult.affectedRows === 0) {
             console.log('No se encontraron autos en la flota o error al actualizar los autos');
         } else {
             console.log('flota_id actualizado a NULL para todos los autos de la flota');
         }
 
-        // Eliminar la flota
-        const [deleteResult] = await db.query('DELETE FROM flotas WHERE id = ?', [flotaId]);
+        // Cambiar el estado de la flota a inactivo en lugar de eliminarla
+        const [updateFlotaResult] = await db.query('UPDATE flotas SET activo = false WHERE id = ?', [flotaId]);
 
-        if (deleteResult.affectedRows === 0) {
-            console.log('Error al eliminar la flota');
-            return res.status(404).json({ error: 'Error al eliminar la flota' });
+        if (updateFlotaResult.affectedRows === 0) {
+            console.log('Error al actualizar el estado de la flota');
+            return res.status(404).json({ error: 'Error al actualizar el estado de la flota' });
         }
 
-        console.log('Flota eliminada');
-        res.json({ message: 'Flota eliminada y flota_id actualizado a NULL para todos los autos de la flota' });
+        console.log('Estado de la flota actualizado a inactivo');
+        res.json({ message: 'Estado de la flota actualizado a inactivo y flota_id actualizado a NULL para todos los autos de la flota' });
     } catch (err) {
         console.error('Error al eliminar la flota:', err);
         res.status(500).json({ error: 'Error al eliminar la flota', details: err.message });
