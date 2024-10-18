@@ -502,21 +502,22 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
 // Endpoint para obtener todos los autos que pertenecen a una flota
 app.get('/api/flotas/:id/autos', async (req, res) => {
     const flotaId = req.params.id;
+    let db;
 
     try {
-        const db = await getConnection();
-        const [results] = await db.query(`
-            SELECT *
-            FROM autos
-            WHERE a.flota_id = ?
-        `, [flotaId]);
-
+        db = await getConnection();
+        const [results] = await db.query(`SELECT * FROM autos WHERE flota_id = ?`, [flotaId]);
         res.json(results);
     } catch (err) {
         console.error('Error al obtener los autos de la flota:', err);
         res.status(500).json({ error: 'Error al obtener los autos de la flota' });
+    } finally {
+        if (db) {
+            await db.end();
+        }
     }
 });
+
 
 // Endpoint para crear una nueva flota
 app.post('/api/flotas-crear', async (req, res) => {
