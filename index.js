@@ -555,18 +555,23 @@ app.get('/api/flotas', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener las flotas' });
     }
 });
-
 // Endpoint para eliminar un auto de una flota
 app.delete('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
     try {
         const { flotaId, autoId } = req.params;
         const db = await getConnection();
 
-        // Eliminar el auto de la flota
-        const [result] = await db.query('DELETE FROM autos WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
-
-        if (result.affectedRows === 0) {
+        // Verificar si el auto existe en la flota
+        const [selectResult] = await db.query('SELECT * FROM autos WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
+        if (selectResult.length === 0) {
             return res.status(404).json({ error: 'Auto no encontrado en la flota' });
+        }
+
+        // Eliminar el auto de la flota
+        const [deleteResult] = await db.query('DELETE FROM autos WHERE id = ? AND flota_id = ?', [autoId, flotaId]);
+
+        if (deleteResult.affectedRows === 0) {
+            return res.status(404).json({ error: 'Error al eliminar el auto' });
         }
 
         res.json({ message: 'Auto eliminado de la flota' });
