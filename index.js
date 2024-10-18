@@ -530,7 +530,6 @@ app.get('/api/flotas/:id/autos', async (req, res) => {
     }
 });
 
-
 // Endpoint para crear una nueva flota
 app.post('/api/flotas-crear', async (req, res) => {
     const { nombre } = req.body;
@@ -587,7 +586,38 @@ app.put('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
     }
 });
 
+// Endpoint para eliminar una flota y actualizar flota_id a null para todos los autos de esa flota
+app.delete('/api/flotas/:flotaId', async (req, res) => {
+    try {
+        const { flotaId } = req.params;
+        const db = await getConnection();
 
+        console.log(`Eliminando la flota con ID ${flotaId}`);
+
+        // Actualizar flota_id a null en la tabla de autos para todos los autos de la flota
+        const [updateResult] = await db.query('UPDATE autos SET flota_id = NULL WHERE flota_id = ?', [flotaId]);
+
+        if (updateResult.affectedRows === 0) {
+            console.log('No se encontraron autos en la flota o error al actualizar los autos');
+        } else {
+            console.log('flota_id actualizado a NULL para todos los autos de la flota');
+        }
+
+        // Eliminar la flota
+        const [deleteResult] = await db.query('DELETE FROM flotas WHERE id = ?', [flotaId]);
+
+        if (deleteResult.affectedRows === 0) {
+            console.log('Error al eliminar la flota');
+            return res.status(404).json({ error: 'Error al eliminar la flota' });
+        }
+
+        console.log('Flota eliminada');
+        res.json({ message: 'Flota eliminada y flota_id actualizado a NULL para todos los autos de la flota' });
+    } catch (err) {
+        console.error('Error al eliminar la flota:', err);
+        res.status(500).json({ error: 'Error al eliminar la flota', details: err.message });
+    }
+});
 
 // Exportar la app para Vercel
 export default app;
