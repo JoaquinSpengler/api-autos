@@ -548,13 +548,13 @@ app.get('/api/flotas', async (req, res) => {
     try {
         const db = await getConnection();
         const [results] = await db.query('SELECT id, nombre, create_time FROM flotas');
-
         res.json(results);
     } catch (err) {
         console.error('Error al obtener las flotas:', err);
-        res.status(500).json({ error: 'Error al obtener las flotas' });
+        res.status(500).json({ error: 'Error al obtener las flotas', details: err.message });
     }
 });
+
 
 // Endpoint para actualizar flota_id a null para un auto específico en una flota específica
 app.put('/api/flotas/:flotaId/autos/:autoId', async (req, res) => {
