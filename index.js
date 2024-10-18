@@ -506,8 +506,8 @@ app.get('/api/flotas/:id/autos', async (req, res) => {
     try {
         const db = await getConnection();
         const [results] = await db.query(`
-            SELECT a.id, a.marca, a.modelo, a.kilometraje, a.nro_patente, a.anio
-            FROM autos a
+            SELECT *
+            FROM autos
             WHERE a.flota_id = ?
         `, [flotaId]);
 
