@@ -499,6 +499,24 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
 
+// Endpoint para obtener una flota por id
+app.get('/api/flotas/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const db = await getConnection();
+        const [results] = await db.query('SELECT * FROM flotas WHERE id = ?', [id]);
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Flota no encontrada' });
+        }
+
+        res.json(results[0]);
+    } catch (err) {
+        console.error('Error al obtener la flota:', err);
+        res.status(500).json({ error: 'Error al obtener la flota', details: err.message });
+    }
+});
+
 // Endpoint para obtener todas las flotas
 app.get('/api/flotas', async (req, res) => {
     try {
