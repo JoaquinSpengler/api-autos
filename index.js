@@ -547,7 +547,7 @@ app.post('/api/flotas-crear', async (req, res) => {
 app.get('/api/flotas', async (req, res) => {
     try {
         const db = await getConnection();
-        const [results] = await db.query('SELECT id, nombre, create_time FROM flotas');
+        const [results] = await db.query('SELECT * FROM flotas');
         res.json(results);
     } catch (err) {
         console.error('Error al obtener las flotas:', err);
