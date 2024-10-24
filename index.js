@@ -758,18 +758,23 @@ app.put('/api/ordenes_de_compra/:id/inactivar', async (req, res) => {
 
 app.post('/api/ordenes_de_compra/:id/confirmar_recepcion', async (req, res) => {
     const { id } = req.params;
-    const { productos } = req.body; // Esto debería ser un array con { id_producto, cantidad_recibida }
+    const { productos } = req.body; // productos será un array con los productos y cantidades recibidas
     const db = await getConnection();
 
     try {
         for (const producto of productos) {
-            await db.query(
-                'INSERT INTO recepciones_productos (id_orden_de_compra, id_producto, cantidad_recibida, fecha_recepcion) VALUES (?, ?, ?, NOW())',
-                [id, producto.id_producto, producto.cantidad_recibida]
-            );
+            // Asegúrate de que estás insertando el valor correcto de cantidad_recibida
+            if (producto.cantidadRecibida != null) {
+                await db.query(
+                    'INSERT INTO recepciones_productos (id_orden_de_compra, id_producto, cantidad_recibida, fecha_recepcion) VALUES (?, ?, ?, NOW())',
+                    [id, producto.id_producto, producto.cantidadRecibida]
+                );
+            } else {
+                console.error('Cantidad recibida es null para producto:', producto);
+            }
         }
-        
-        // Cambiar el estado de la orden a 'completada'
+
+        // Cambiar el estado de la orden de compra a 'completada'
         await db.query(
             'UPDATE ordenes_de_compra SET estado = ? WHERE id_orden_de_compra = ?',
             ['completada', id]
@@ -781,8 +786,6 @@ app.post('/api/ordenes_de_compra/:id/confirmar_recepcion', async (req, res) => {
         res.status(500).json({ error: 'Error al confirmar la recepción de productos', details: err.message });
     }
 });
-
-
 
 
 // Exportar la app para Vercel
