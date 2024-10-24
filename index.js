@@ -823,6 +823,9 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener órdenes de compra', details: err.message });
     }
 });
+
+// Endpoint obtener productos y productos recibidos
+
 app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
     const { id } = req.params;
     const db = await getConnection();
@@ -841,7 +844,7 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
             SELECT op.id_producto, op.cantidad AS cantidad_solicitada, 
                    IFNULL(rp.cantidad_recibida, 0) AS cantidad_recibida
             FROM ordenes_productos op
-            LEFT JOIN recepcion_productos rp ON op.id_producto = rp.id_producto 
+            LEFT JOIN recepciones_productos rp ON op.id_producto = rp.id_producto 
             AND rp.id_orden_de_compra = ?
             WHERE op.id_orden_de_compra = ?`,
             [id, id]
