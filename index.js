@@ -825,7 +825,7 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
 });
 
 // Endpoint para obtener una orden de compra en específico junto con los productos de recepciones
-app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
+app.get('/api/ordenes_de_compra/:id', async (req, res) => {
     const { id } = req.params;
     const db = await getConnection();
 
@@ -848,8 +848,8 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
 
         // Enviar la respuesta con la orden y las recepciones
         res.json({
-            ...orden,
-            recepciones
+            orden, // Devolviendo el objeto de orden directamente
+            recepciones // Devolviendo las recepciones como un array plano
         });
     } catch (err) {
         console.error('Error al obtener la orden de compra:', err);
