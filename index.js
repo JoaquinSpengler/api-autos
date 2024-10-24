@@ -754,36 +754,37 @@ app.put('/api/ordenes_de_compra/:id/inactivar', async (req, res) => {
 });
 
 
-// Endpoint para verificar y marcar como completada una orden, de manera que se indica los productos y la cantidad recibidos
+// Endpoint para obtener los detalles de una orden de compra, incluyendo los productos y la cantidad recibida
 
-app.post('/api/ordenes_de_compra/:id/confirmar_recepcion', async (req, res) => {
+app.get('/api/ordenes_de_compra/:id', async (req, res) => {
     const { id } = req.params;
-    const { productos } = req.body; // productos será un array con los productos y cantidades recibidas
     const db = await getConnection();
 
     try {
-        for (const producto of productos) {
-            // Asegúrate de que estás insertando el valor correcto de cantidad_recibida
-            if (producto.cantidadRecibida != null) {
-                await db.query(
-                    'INSERT INTO recepciones_productos (id_orden_de_compra, id_producto, cantidad_recibida, fecha_recepcion) VALUES (?, ?, ?, NOW())',
-                    [id, producto.id_producto, producto.cantidadRecibida]
-                );
-            } else {
-                console.error('Cantidad recibida es null para producto:', producto);
-            }
+        // Obtener los detalles de la orden de compra
+        const [orden] = await db.query('SELECT * FROM ordenes_de_compra WHERE id_orden_de_compra = ?', [id]);
+
+        if (!orden) {
+            return res.status(404).json({ error: 'Orden de compra no encontrada' });
         }
 
-        // Cambiar el estado de la orden de compra a 'completada'
-        await db.query(
-            'UPDATE ordenes_de_compra SET estado = ? WHERE id_orden_de_compra = ?',
-            ['completada', id]
+        // Obtener los productos relacionados con la orden de compra
+        const productos = await db.query(
+            `SELECT p.id_producto, p.nombre, p.cantidad, COALESCE(r.cantidad_recibida, 'No recibido') AS cantidad_recibida
+             FROM productos_orden_de_compra p
+             LEFT JOIN recepciones_productos r ON p.id_producto = r.id_producto AND p.id_orden_de_compra = r.id_orden_de_compra
+             WHERE p.id_orden_de_compra = ?`,
+            [id]
         );
 
-        res.json({ message: 'Recepción confirmada y orden completada.' });
+        // Incluir los productos en la respuesta de la orden de compra
+        res.json({
+            ...orden,
+            productos
+        });
     } catch (err) {
-        console.error('Error al confirmar la recepción de productos:', err);
-        res.status(500).json({ error: 'Error al confirmar la recepción de productos', details: err.message });
+        console.error('Error al obtener los detalles de la orden de compra:', err);
+        res.status(500).json({ error: 'Error al obtener los detalles de la orden de compra', details: err.message });
     }
 });
 
