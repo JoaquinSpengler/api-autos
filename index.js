@@ -863,7 +863,7 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
 
 // Endpoint para agregar una nueva orden de compra
 app.post('/api/ordenes_de_compra', async (req, res) => {
-    const { id_proveedor, productos } = req.body; // Los datos enviados desde el frontend
+    const { id_proveedor, productos } = req.body; // Datos enviados desde el frontend
 
     if (!id_proveedor || !productos || productos.length === 0) {
         return res.status(400).json({ error: 'Debe proporcionar un proveedor y al menos un producto' });
@@ -873,8 +873,19 @@ app.post('/api/ordenes_de_compra', async (req, res) => {
         const db = await getConnection();
         await db.beginTransaction(); // Iniciar una transacción
 
+        // Calcular el total sumando los precios de los productos multiplicados por la cantidad
+        let total = 0;
+        for (const producto of productos) {
+            const [productoData] = await db.query('SELECT precio FROM productos WHERE id_producto = ?', [producto.id_producto]);
+            const precio = productoData[0].precio;
+            total += precio * producto.cantidad;
+        }
+
         // Insertar la nueva orden de compra en la tabla `ordenes_de_compra`
-        const [result] = await db.query('INSERT INTO ordenes_de_compra (id_proveedor) VALUES (?)', [id_proveedor]);
+        const [result] = await db.query(
+            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado) VALUES (?, NOW(), ?, ?)',
+            [id_proveedor, total, 'creada'] // Se establece el estado en 'creada' por defecto
+        );
         const id_orden_de_compra = result.insertId; // Obtener el ID de la nueva orden
 
         // Insertar los productos de la orden en la tabla `ordenes_productos`
@@ -893,6 +904,7 @@ app.post('/api/ordenes_de_compra', async (req, res) => {
         res.status(500).json({ error: 'Error al agregar la orden de compra', details: err.message });
     }
 });
+
 
 
 // Exportar la app para Vercel
