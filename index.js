@@ -824,6 +824,36 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
     }
 });
 
+// Endpoint para obtener una orden de compra en especifico
+
+app.get('/api/ordenes_de_compra/:id', async (req, res) => {
+    const { id } = req.params;
+    const db = await getConnection();
+
+    try {
+        const [orden] = await db.query('SELECT * FROM ordenes_de_compra WHERE id_orden_de_compra = ?', [id]);
+        if (!orden) {
+            return res.status(404).json({ error: 'Orden de compra no encontrada' });
+        }
+
+        const recepciones = await db.query(
+            `SELECT id_producto, cantidad_recibida 
+             FROM recepciones_productos 
+             WHERE id_orden_de_compra = ?`,
+            [id]
+        );
+
+        res.json({
+            ...orden,
+            recepciones
+        });
+    } catch (err) {
+        console.error('Error al obtener la orden de compra:', err);
+        res.status(500).json({ error: 'Error al obtener la orden de compra', details: err.message });
+    }
+});
+
+
 // Exportar la app para Vercel
 export default app;
 
