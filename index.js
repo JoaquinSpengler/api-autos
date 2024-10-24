@@ -754,6 +754,35 @@ app.put('/api/ordenes_de_compra/:id/inactivar', async (req, res) => {
 });
 
 
+// Endpoint para verificar y marcar como completada una orden, de manera que se indica los productos y la cantidad recibidos
+
+app.post('/api/ordenes_de_compra/:id/confirmar_recepcion', async (req, res) => {
+    const { id } = req.params;
+    const { productos } = req.body; // Esto debería ser un array con { id_producto, cantidad_recibida }
+    const db = await getConnection();
+
+    try {
+        for (const producto of productos) {
+            await db.query(
+                'INSERT INTO recepciones_productos (id_orden_de_compra, id_producto, cantidad_recibida, fecha_recepcion) VALUES (?, ?, ?, NOW())',
+                [id, producto.id_producto, producto.cantidad_recibida]
+            );
+        }
+        
+        // Cambiar el estado de la orden a 'completada'
+        await db.query(
+            'UPDATE ordenes_de_compra SET estado = ? WHERE id_orden_de_compra = ?',
+            ['completada', id]
+        );
+
+        res.json({ message: 'Recepción confirmada y orden completada.' });
+    } catch (err) {
+        console.error('Error al confirmar la recepción de productos:', err);
+        res.status(500).json({ error: 'Error al confirmar la recepción de productos', details: err.message });
+    }
+});
+
+
 
 
 // Exportar la app para Vercel
