@@ -662,6 +662,36 @@ app.put('/api/flotas/:id', async (req, res) => {
     }
 });
 
+
+
+// ----------------------------------- ORDEN DE COMPRA ENDPOINTS -----------------------------------
+
+// Endpoint para obtener todas las órdenes de compra y sus productos
+app.get('/api/ordenes_de_compra', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const [ordenes] = await db.query('SELECT * FROM ordenes_de_compra');
+
+        // Para cada orden, obtener sus productos asociados
+        const ordenesConProductos = await Promise.all(ordenes.map(async (orden) => {
+            const [productos] = await db.query(`
+                SELECT p.id, p.nombre, op.cantidad
+                FROM ordenes_productos op
+                JOIN productos p ON op.id_producto = p.id
+                WHERE op.id_orden_de_compra = ?
+            `, [orden.id_orden_de_compra]);
+
+            return { ...orden, productos };
+        }));
+
+        res.json(ordenesConProductos);
+    } catch (err) {
+        console.error('Error al obtener las órdenes de compra:', err);
+        res.status(500).json({ error: 'Error al obtener las órdenes de compra', details: err.message });
+    }
+});
+
+
 // Exportar la app para Vercel
 export default app;
 
