@@ -754,41 +754,75 @@ app.put('/api/ordenes_de_compra/:id/inactivar', async (req, res) => {
 });
 
 
-// Endpoint para obtener los detalles de una orden de compra, incluyendo los productos y la cantidad recibida
+// Endpoint para indicar la cantidad de productos recibidos y cambiar el estado de la orden a completada
 
-app.get('/api/ordenes_de_compra/:id', async (req, res) => {
+app.post('/api/ordenes_de_compra/:id/confirmar_recepcion', async (req, res) => {
     const { id } = req.params;
+    const { productos } = req.body; // Espera un array de productos con id_producto y cantidadRecibida
     const db = await getConnection();
 
     try {
-        // Obtener los detalles de la orden de compra
+        // Verificar si la orden de compra existe
         const [orden] = await db.query('SELECT * FROM ordenes_de_compra WHERE id_orden_de_compra = ?', [id]);
-
         if (!orden) {
             return res.status(404).json({ error: 'Orden de compra no encontrada' });
         }
 
-        // Obtener los productos relacionados con la orden de compra
-        const productos = await db.query(
-            `SELECT p.id_producto, p.nombre, p.cantidad, 
-                    COALESCE(r.cantidad_recibida, 0) AS cantidad_recibida
-             FROM productos p
-             LEFT JOIN recepciones_productos r ON p.id_producto = r.id_producto 
-                                               AND r.id_orden_de_compra = ?`,
-            [id]
+        // Iterar sobre los productos y actualizar o insertar en recepciones_productos
+        for (const producto of productos) {
+            const { id_producto, cantidadRecibida } = producto;
+
+            // Actualizar la cantidad recibida
+            await db.query(
+                `INSERT INTO recepciones_productos (id_orden_de_compra, id_producto, cantidad_recibida, fecha_recepcion) 
+                 VALUES (?, ?, ?, NOW())
+                 ON DUPLICATE KEY UPDATE cantidad_recibida = ?`,
+                [id, id_producto, cantidadRecibida, cantidadRecibida]
+            );
+        }
+
+        // Actualizar el estado de la orden a "completada"
+        await db.query(
+            'UPDATE ordenes_de_compra SET estado = ? WHERE id_orden_de_compra = ?',
+            ['completada', id]
         );
-        
-        // Incluir los productos en la respuesta de la orden de compra
-        res.json({
-            ...orden,
-            productos
-        });
+
+        res.status(200).json({ message: 'Recepción de productos confirmada y orden de compra completada.' });
     } catch (err) {
-        console.error('Error al obtener los detalles de la orden de compra:', err);
-        res.status(500).json({ error: 'Error al obtener los detalles de la orden de compra', details: err.message });
+        console.error('Error al confirmar la recepción de productos:', err);
+        res.status(500).json({ error: 'Error al confirmar la recepción de productos', details: err.message });
     }
 });
 
+// Endpoint para obtener las ordenes de compra y confirmaciones de recepcion
+
+app.get('/api/ordenes_de_compra', async (req, res) => {
+    const db = await getConnection();
+
+    try {
+        // Obtener todas las órdenes de compra
+        const ordenes = await db.query('SELECT * FROM ordenes_de_compra');
+
+        // Obtener las confirmaciones de recepción para cada orden
+        const ordenesConRecepciones = await Promise.all(ordenes.map(async (orden) => {
+            const recepciones = await db.query(
+                `SELECT id_producto, cantidad_recibida 
+                 FROM recepciones_productos 
+                 WHERE id_orden_de_compra = ?`,
+                [orden.id_orden_de_compra]
+            );
+            return {
+                ...orden,
+                recepciones
+            };
+        }));
+
+        res.json(ordenesConRecepciones);
+    } catch (err) {
+        console.error('Error al obtener órdenes de compra:', err);
+        res.status(500).json({ error: 'Error al obtener órdenes de compra', details: err.message });
+    }
+});
 
 // Exportar la app para Vercel
 export default app;
