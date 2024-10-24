@@ -691,6 +691,36 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
     }
 });
 
+// Endpoint para cambiar el estado de una orden de compra de creada a aceptada
+app.put('/api/ordenes_de_compra/:id/aceptar', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await getConnection();
+
+        // Verificar si la orden existe y su estado actual es "creada"
+        const [orden] = await db.query('SELECT estado FROM ordenes_de_compra WHERE id_orden_de_compra = ?', [id]);
+
+        if (orden.length === 0) {
+            return res.status(404).json({ error: 'Orden de compra no encontrada' });
+        }
+
+        if (orden[0].estado !== 'creada') {
+            return res.status(400).json({ error: 'Solo se pueden aceptar órdenes en estado "creada"' });
+        }
+
+        // Actualizar el estado de la orden a "aceptada"
+        const [result] = await db.query('UPDATE ordenes_de_compra SET estado = "aceptada" WHERE id_orden_de_compra = ?', [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(500).json({ error: 'Error al actualizar el estado de la orden de compra' });
+        }
+
+        res.json({ message: 'Orden de compra aceptada' });
+    } catch (err) {
+        console.error('Error al aceptar la orden de compra:', err);
+        res.status(500).json({ error: 'Error al aceptar la orden de compra', details: err.message });
+    }
+});
 
 // Exportar la app para Vercel
 export default app;
