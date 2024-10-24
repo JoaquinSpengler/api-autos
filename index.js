@@ -905,6 +905,11 @@ app.post('/api/ordenes_de_compra', async (req, res) => {
     }
 });
 
+app.use(cors({
+    origin: 'http://localhost:5173', // Ajusta esto si tu frontend está en otro dominio
+    methods: 'GET,POST,PUT,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
+}));
 
 
 // Exportar la app para Vercel
