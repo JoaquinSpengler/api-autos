@@ -770,13 +770,14 @@ app.get('/api/ordenes_de_compra/:id', async (req, res) => {
 
         // Obtener los productos relacionados con la orden de compra
         const productos = await db.query(
-            `SELECT p.id_producto, p.nombre, p.cantidad, COALESCE(r.cantidad_recibida, 'No recibido') AS cantidad_recibida
-             FROM productos_orden_de_compra p
-             LEFT JOIN recepciones_productos r ON p.id_producto = r.id_producto AND p.id_orden_de_compra = r.id_orden_de_compra
-             WHERE p.id_orden_de_compra = ?`,
+            `SELECT p.id_producto, p.nombre, p.cantidad, 
+                    COALESCE(r.cantidad_recibida, 0) AS cantidad_recibida
+             FROM productos p
+             LEFT JOIN recepciones_productos r ON p.id_producto = r.id_producto 
+                                               AND r.id_orden_de_compra = ?`,
             [id]
         );
-
+        
         // Incluir los productos en la respuesta de la orden de compra
         res.json({
             ...orden,
