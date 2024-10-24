@@ -709,7 +709,7 @@ app.put('/api/ordenes_de_compra/:id/aceptar', async (req, res) => {
         }
 
         // Actualizar el estado de la orden a "aceptada"
-        const [result] = await db.query('UPDATE ordenes_de_compra SET estado = "aceptada" WHERE id_orden_de_compra = ?', [id]);
+        const [result] = await db.query('UPDATE ordenes_de_compra SET estado = ? WHERE id_orden_de_compra = ?', ['aceptada', id]);
 
         if (result.affectedRows === 0) {
             return res.status(500).json({ error: 'Error al actualizar el estado de la orden de compra' });
