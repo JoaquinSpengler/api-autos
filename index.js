@@ -823,8 +823,6 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener órdenes de compra', details: err.message });
     }
 });
-
-// Endpoint para obtener una orden de compra en específico junto con los productos de recepciones
 app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
     const { id } = req.params;
     const db = await getConnection();
@@ -832,24 +830,27 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
     try {
         // Obtener la orden de compra
         const [orden] = await db.query('SELECT * FROM ordenes_de_compra WHERE id_orden_de_compra = ?', [id]);
-        
+
         // Verificar si la orden de compra existe
         if (!orden) {
             return res.status(404).json({ error: 'Orden de compra no encontrada' });
         }
 
-        // Obtener las recepciones de productos asociadas a la orden de compra
-        const recepciones = await db.query(
-            `SELECT id_recepcion, id_producto, cantidad_recibida, fecha_recepcion 
-             FROM recepciones_productos 
-             WHERE id_orden_de_compra = ?`,
-            [id]
+        // Obtener los productos de la orden junto con las recepciones de productos asociadas
+        const productosConRecepcion = await db.query(`
+            SELECT op.id_producto, op.cantidad AS cantidad_solicitada, 
+                   IFNULL(rp.cantidad_recibida, 0) AS cantidad_recibida
+            FROM ordenes_productos op
+            LEFT JOIN recepcion_productos rp ON op.id_producto = rp.id_producto 
+            AND rp.id_orden_de_compra = ?
+            WHERE op.id_orden_de_compra = ?`,
+            [id, id]
         );
 
-        // Enviar la respuesta con la orden y las recepciones
+        // Enviar la respuesta con la orden y los productos con sus cantidades
         res.json({
             orden, // Devolviendo el objeto de orden directamente
-            recepciones // Devolviendo las recepciones como un array plano
+            productos: productosConRecepcion // Devolviendo los productos solicitados con sus cantidades
         });
     } catch (err) {
         console.error('Error al obtener la orden de compra:', err);
