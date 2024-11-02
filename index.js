@@ -931,6 +931,27 @@ app.post('/api/ordenes_de_compra', async (req, res) => {
     }
 });
 
+//--------------------------ENPOINTS PARA TOKEN---------------------------------
+
+//enpoint para crear solicitud de mecanico
+
+app.post('/api/solicitudes', async (req, res) => {
+    const { usuario_id, auto_id, fecha_inicio, fecha_fin, estado } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = 'INSERT INTO solicitudes (usuario_id, auto_id, fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?, ?)';
+        const [result] = await db.query(query, [usuario_id, auto_id, fecha_inicio, fecha_fin, estado]);
+        res.json({ id: result.insertId, usuario_id, auto_id, fecha_inicio, fecha_fin, estado });
+    } catch (err) {
+        console.error('Error al crear solicitud:', err);
+        res.status(500).json({ error: 'Error al crear solicitud' });
+    }
+});
+
+
+
+
 app.use(cors({
     origin: 'http://localhost:5173', // Ajusta esto si tu frontend está en otro dominio
     methods: 'GET,POST,PUT,DELETE',
