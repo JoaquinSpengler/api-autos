@@ -662,6 +662,29 @@ app.put('/api/flotas/:id', async (req, res) => {
     }
 });
 
+// Endpoint para actualizar la flota de un auto por id
+app.put('/api/autos/:id/flota', async (req, res) => {
+    const { id } = req.params;
+    const { flota_id } = req.body;
+
+    if (!flota_id) {
+        return res.status(400).json({ error: 'El ID de la flota es obligatorio' });
+    }
+
+    try {
+        const db = await getConnection();
+        const [result] = await db.query('UPDATE autos SET flota_id = ? WHERE id = ?', [flota_id, id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Auto no encontrado' });
+        }
+
+        res.json({ message: 'Flota del auto actualizada con éxito' });
+    } catch (err) {
+        console.error('Error al actualizar la flota del auto:', err);
+        res.status(500).json({ error: 'Error al actualizar la flota del auto', details: err.message });
+    }
+});
 
 
 // ----------------------------------- ORDEN DE COMPRA ENDPOINTS -----------------------------------
