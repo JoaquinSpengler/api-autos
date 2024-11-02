@@ -662,18 +662,19 @@ app.put('/api/flotas/:id', async (req, res) => {
     }
 });
 
-// Endpoint para actualizar la flota de un auto por id
-app.put('/api/autos/:id/flota', async (req, res) => {
-    const { id } = req.params;
-    const { flota_id } = req.body;
+// Endpoint para actualizar la flota de un auto por patente
+app.put('/api/autos/flota', async (req, res) => {
+    const { patente, flota_id } = req.body;
 
-    if (!flota_id) {
-        return res.status(400).json({ error: 'El ID de la flota es obligatorio' });
+    if (!patente || !flota_id) {
+        return res.status(400).json({ error: 'La patente y el ID de la flota son obligatorios' });
     }
 
     try {
         const db = await getConnection();
-        const [result] = await db.query('UPDATE autos SET flota_id = ? WHERE id = ?', [flota_id, id]);
+        
+        // Actualizar el flota_id del auto usando la patente
+        const [result] = await db.query('UPDATE autos SET flota_id = ? WHERE nro_patente = ?', [flota_id, patente]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Auto no encontrado' });
