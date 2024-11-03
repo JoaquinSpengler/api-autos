@@ -949,7 +949,7 @@ app.post('/api/solicitudes', async (req, res) => {
     }
 });
 
-//endpoint para ver las solicitudes pendientes
+//endpoint para ver las solicitudes de mecanico  pendientes
 app.get('/api/solicitudes', async (req, res) => {
     const estado = 'pendiente';  // Filtramos únicamente por estado pendiente
 
@@ -966,6 +966,61 @@ app.get('/api/solicitudes', async (req, res) => {
     }
 });
 
+//endpoint para mostrar el token al conductor
+app.get('/api/token/pendiente', async (req, res) => {
+    const query = 'SELECT token FROM Solicitud_Mecanico WHERE estado = ? ORDER BY fecha_creacion DESC LIMIT 1';
+    const params = ['pendiente'];
+
+    try {
+        const db = await getConnection();
+        const [results] = await db.query(query, params);
+
+        if (results.length > 0) {
+            res.json({ token: results[0].token });
+        } else {
+            res.status(404).json({ error: 'No hay tokens pendientes' });
+        }
+    } catch (err) {
+        console.error('Error al obtener token pendiente:', err);
+        res.status(500).json({ error: 'Error al obtener token pendiente' });
+    }
+});
+//endpoint para resolucion de problema, cambia estado a resuelto y sube fecha de resolucion
+app.put('/api/solicitudes/resolver', async (req, res) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(400).json({ error: 'Token es requerido' });
+    }
+
+    try {
+        const db = await getConnection();
+
+        // Verifica si hay una solicitud pendiente con ese token
+        const [solicitudes] = await db.query(
+            'SELECT * FROM Solicitud_Mecanico WHERE token = ? AND estado = ?',
+            [token, 'pendiente']
+        );
+
+        if (solicitudes.length === 0) {
+            return res.status(404).json({ error: 'No se encontró una solicitud pendiente con ese token' });
+        }
+
+        // Registra la fecha y hora actuales para la resolución
+        const fecha_resolucion = new Date();
+
+        // Actualiza el estado de la solicitud a "resuelto" y guarda la fecha de resolución
+        await db.query(
+            'UPDATE Solicitud_Mecanico SET estado = ?, fecha_resolucion = ? WHERE token = ?',
+            ['resuelto', fecha_resolucion, token]
+        );
+
+        res.json({ message: 'Solicitud actualizada a resuelto con fecha de resolución' });
+    } catch (err) {
+        console.error('Error al resolver la solicitud:', err);
+        res.status(500).json({ error: 'Error al resolver la solicitud' });
+    }
+});
 
 
 
