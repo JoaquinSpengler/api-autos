@@ -940,12 +940,29 @@ app.post('/api/solicitudes', async (req, res) => {
 
     try {
         const db = await getConnection();
-        const query = 'INSERT INTO solicitudes (usuario_id, auto_id, fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO Solicitud_Mecanico (usuario_id, auto_id, fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?, ?)';
         const [result] = await db.query(query, [usuario_id, auto_id, fecha_inicio, fecha_fin, estado]);
         res.json({ id: result.insertId, usuario_id, auto_id, fecha_inicio, fecha_fin, estado });
     } catch (err) {
         console.error('Error al crear solicitud:', err);
         res.status(500).json({ error: 'Error al crear solicitud' });
+    }
+});
+
+//endpoint para ver las solicitudes pendientes
+app.get('/api/solicitudes', async (req, res) => {
+    const estado = 'pendiente';  // Filtramos únicamente por estado pendiente
+
+    const query = 'SELECT * FROM Solicitud_Mecanico WHERE estado = ?';
+    const params = [estado];
+
+    try {
+        const db = await getConnection();
+        const [results] = await db.query(query, params);
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener solicitudes pendientes:', err);
+        res.status(500).json({ error: 'Error al obtener solicitudes pendientes' });
     }
 });
 
