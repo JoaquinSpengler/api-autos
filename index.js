@@ -526,44 +526,26 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
 
 // Endpoint para obtener productos activos específicos de un proveedor
 app.get('/api/productos/por-proveedor', async (req, res) => {
-    const proveedorId = parseInt(req.query.proveedorId, 10);
-
-    if (!proveedorId || isNaN(proveedorId)) {
-        return res.status(400).json({ error: 'El proveedorId debe ser un número entero válido' });
-    }
-
-    let db;
+    const proveedorId = req.query.proveedorId;
 
     try {
-        db = await getConnection();
+        const connection = await pool.getConnection();
+        const [rows, fields] = await connection.execute('SELECT p.* FROM productos p JOIN categorias c ON p.categoria = c.id WHERE p.activo = 1 AND c.proveedor_id = ?', [proveedorId]);
+        connection.release();
 
-        const query = `
-            SELECT p.*
-            FROM productos p
-            JOIN categorias c ON p.categoria = c.id
-            WHERE p.activo = 1
-            AND c.proveedor_id = ?;
-        `;
-
-        console.log('Ejecutando consulta:', query, 'con parámetros:', [proveedorId]);
-
-        const [results] = await db.query(query, [proveedorId]);
-
-        if (results.length === 0) {
-            console.log(`No se encontraron productos para el proveedor con ID ${proveedorId}`);
-            return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron productos para el proveedor' });
         }
 
-        console.log(`Se encontraron ${results.length} productos para el proveedor ${proveedorId}`);
-        res.json(results);
-    } catch (err) {
-        console.error(`Error al obtener productos del proveedor ${proveedorId}:`, err);
-        res.status(500).json({ error: 'Error interno del servidor' }); // Mensaje más genérico para el usuario
-    } finally {
-        if (db) {
-            await db.end();
-        }
+        res.json(rows);
+    } catch (error) {
+        console.error('Error al obtener productos:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
+});
+
+app.listen(port, () => {
+    console.log(`Servidor escuchando en el puerto ${port}`);
 });
 
 
