@@ -526,7 +526,7 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
 
 // Endpoint para obtener productos activos específicos de un proveedor
 app.get('/api/productos/por-proveedor', async (req, res) => {
-    const { proveedorId } = req.query; // Captura el ID del proveedor como parámetro de consulta
+    const proveedorId = parseInt(req.query.proveedorId, 10); // Convertir a número
 
     if (!proveedorId) {
         return res.status(400).json({ error: 'El proveedorId es necesario' });
@@ -538,11 +538,17 @@ app.get('/api/productos/por-proveedor', async (req, res) => {
             SELECT p.*
             FROM productos p
             JOIN categorias c ON p.categoria = c.id
-            WHERE p.activo = true
+            WHERE p.activo = 1
             AND c.proveedor_id = ?;
         `;
 
         const [results] = await db.query(query, [proveedorId]);
+        
+        // Verificar si se encontraron productos
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
+        }
+        
         res.json(results);
     } catch (err) {
         console.error('Error al obtener productos del proveedor:', err);
