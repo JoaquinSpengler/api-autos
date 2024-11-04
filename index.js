@@ -524,6 +524,33 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
     }
 });
 
+// Endpoint para obtener productos de un proveedor específico
+app.get('/api/productos/orden-compra', async (req, res) => {
+    const { proveedorId } = req.query;
+    if (!proveedorId) {
+        return res.status(400).json({ error: 'Se requiere el ID del proveedor' });
+    }
+
+    try {
+        const db = await getConnection();
+
+        // Obtener las categorías que el proveedor ofrece
+        const [categorias] = await db.query('SELECT id FROM categorias WHERE proveedor_id = ?', [proveedorId]);
+        const categoriaIds = categorias.map(categoria => categoria.id);
+
+        // Obtener productos que pertenecen a esas categorías y están activos
+        const [productos] = await db.query(
+            'SELECT * FROM productos WHERE categoria IN (?) AND activo = 1',
+            [categoriaIds]
+        );
+
+        res.json(productos);
+    } catch (err) {
+        console.error('Error al obtener productos:', err);
+        res.status(500).json({ error: 'Error al obtener productos' });
+    }
+});
+
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
 
