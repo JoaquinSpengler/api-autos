@@ -987,7 +987,7 @@ app.post('/api/solicitudes', async (req, res) => {
 
 
 //endpoint para ver las solicitudes de mecanico  pendientes
-app.get('/api/solicitudes', async (req, res) => {
+app.get('/api/solicitudes/pendientes', async (req, res) => {
     const estado = 'pendiente';  // Filtramos únicamente por estado pendiente
 
     const query = 'SELECT * FROM Solicitud_Mecanico WHERE estado = ?';
