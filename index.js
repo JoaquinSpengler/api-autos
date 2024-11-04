@@ -936,18 +936,46 @@ app.post('/api/ordenes_de_compra', async (req, res) => {
 //enpoint para crear solicitud de mecanico
 
 app.post('/api/solicitudes', async (req, res) => {
-    const { usuario_id, auto_id, fecha_inicio, fecha_fin, estado } = req.body;
+    const {
+        id_conductor,
+        patente_auto,
+        token,
+        descripcion,
+        foto,
+        latitud,
+        longitud,
+        estado,
+        fecha_solicitud,
+        fecha_resolucion
+    } = req.body;
 
     try {
         const db = await getConnection();
-        const query = 'INSERT INTO Solicitud_Mecanico (usuario_id, auto_id, fecha_inicio, fecha_fin, estado) VALUES (?, ?, ?, ?, ?)';
-        const [result] = await db.query(query, [usuario_id, auto_id, fecha_inicio, fecha_fin, estado]);
-        res.json({ id: result.insertId, usuario_id, auto_id, fecha_inicio, fecha_fin, estado });
+        const query = `INSERT INTO Solicitud_Mecanico (
+            id_conductor, patente_auto, token, descripcion, foto,
+            latitud, longitud, estado, fecha_solicitud, fecha_resolucion
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        const [result] = await db.query(query, [
+            id_conductor,
+            patente_auto,
+            token,
+            descripcion,
+            foto,
+            latitud,
+            longitud,
+            estado,
+            fecha_solicitud,
+            fecha_resolucion
+        ]);
+
+        res.json({ id_peticion: result.insertId });
     } catch (err) {
         console.error('Error al crear solicitud:', err);
         res.status(500).json({ error: 'Error al crear solicitud' });
     }
 });
+
 
 //endpoint para ver las solicitudes de mecanico  pendientes
 app.get('/api/solicitudes', async (req, res) => {
