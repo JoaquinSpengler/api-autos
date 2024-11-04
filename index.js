@@ -1,12 +1,20 @@
 import express from 'express';
-import mysql from 'mysql2/promise'; // Usar mysql2 con promesas
+import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Configuración de CORS
+app.use(cors({
+    origin: 'http://localhost:5173', // Ajusta esto si tu frontend está en otro dominio
+    methods: 'GET,POST,PUT,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
+}));
+
+app.use(express.json()); // Para manejar el JSON en las peticiones
 
 const router = express.Router();
 
@@ -1049,15 +1057,6 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
         res.status(500).json({ error: 'Error al resolver la solicitud' });
     }
 });
-
-
-
-app.use(cors({
-    origin: 'http://localhost:5173', // Ajusta esto si tu frontend está en otro dominio
-    methods: 'GET,POST,PUT,DELETE',
-    allowedHeaders: 'Content-Type,Authorization',
-}));
-
 
 // Exportar la app para Vercel
 export default app;
