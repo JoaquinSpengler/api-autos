@@ -9,10 +9,11 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
-    origin: 'http://localhost:5173', // Ajusta esto si tu frontend está en otro dominio
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
 }));
+
 
 app.use(express.json()); // Para manejar el JSON en las peticiones
 
