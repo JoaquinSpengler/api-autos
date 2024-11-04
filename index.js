@@ -525,7 +525,6 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
 });
 
 // Endpoint para obtener productos activos específicos de un proveedor
-// Endpoint para obtener productos activos específicos de un proveedor
 app.get('/api/productos/por-proveedor', async (req, res) => {
     const proveedorId = parseInt(req.query.proveedorId, 10);
     console.log('Proveedor ID:', proveedorId); // Verificar el valor de proveedorId
