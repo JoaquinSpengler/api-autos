@@ -527,16 +527,16 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
 // Endpoint para obtener productos activos específicos de un proveedor
 app.get('/api/productos/por-proveedor', async (req, res) => {
     const proveedorId = parseInt(req.query.proveedorId, 10);
-    console.log('Proveedor ID:', proveedorId); // Verificar el valor de proveedorId
 
-    if (!proveedorId) {
-        return res.status(400).json({ error: 'El proveedorId es necesario' });
+    if (!proveedorId || isNaN(proveedorId)) {
+        return res.status(400).json({ error: 'El proveedorId debe ser un número entero válido' });
     }
 
     let db;
 
     try {
         db = await getConnection();
+
         const query = `
             SELECT p.*
             FROM productos p
@@ -545,22 +545,20 @@ app.get('/api/productos/por-proveedor', async (req, res) => {
             AND c.proveedor_id = ?;
         `;
 
-        // Log the query and parameters
-        console.log('Ejecutando consulta:', query);
-        console.log('Con parámetros:', [proveedorId]);
+        console.log('Ejecutando consulta:', query, 'con parámetros:', [proveedorId]);
 
         const [results] = await db.query(query, [proveedorId]);
-        console.log('Resultados de la consulta:', results); // Verificar los resultados de la consulta
 
         if (results.length === 0) {
-            console.log('No se encontraron productos para el proveedor:', proveedorId);
+            console.log(`No se encontraron productos para el proveedor con ID ${proveedorId}`);
             return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
         }
 
+        console.log(`Se encontraron ${results.length} productos para el proveedor ${proveedorId}`);
         res.json(results);
     } catch (err) {
-        console.error('Error al obtener productos del proveedor:', err);
-        res.status(500).json({ error: 'Error al obtener productos del proveedor' });
+        console.error(`Error al obtener productos del proveedor ${proveedorId}:`, err);
+        res.status(500).json({ error: 'Error interno del servidor' }); // Mensaje más genérico para el usuario
     } finally {
         if (db) {
             await db.end();
