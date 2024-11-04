@@ -947,6 +947,7 @@ app.post('/api/ordenes_de_compra', async (req, res) => {
 app.post('/api/solicitudes', async (req, res) => {
     const {
         id_conductor,
+        id_mecanico,
         patente_auto,
         token,
         descripcion,
@@ -955,18 +956,18 @@ app.post('/api/solicitudes', async (req, res) => {
         longitud,
         estado,
         fecha_solicitud,
-        fecha_resolucion
     } = req.body;
 
     try {
         const db = await getConnection();
         const query = `INSERT INTO Solicitud_Mecanico (
-            id_conductor, patente_auto, token, descripcion, foto,
-            latitud, longitud, estado, fecha_solicitud, fecha_resolucion
+            id_conductor, id_mecanico, patente_auto, token, descripcion, foto,
+            latitud, longitud, estado, fecha_solicitud
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const [result] = await db.query(query, [
             id_conductor,
+            id_mecanico,
             patente_auto,
             token,
             descripcion,
@@ -975,7 +976,6 @@ app.post('/api/solicitudes', async (req, res) => {
             longitud,
             estado,
             fecha_solicitud,
-            fecha_resolucion
         ]);
 
         res.json({ id_peticion: result.insertId });
