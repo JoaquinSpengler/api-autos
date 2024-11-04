@@ -524,32 +524,32 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
     }
 });
 
-// Endpoint para obtener productos de un proveedor específico
-app.get('/api/productos/orden-compra', async (req, res) => {
-    const { proveedorId } = req.query;
+// Endpoint para obtener productos activos específicos de un proveedor
+app.get('/api/productos/por-proveedor', async (req, res) => {
+    const { proveedorId } = req.query; // Captura el ID del proveedor como parámetro de consulta
+
     if (!proveedorId) {
-        return res.status(400).json({ error: 'Se requiere el ID del proveedor' });
+        return res.status(400).json({ error: 'El proveedorId es necesario' });
     }
 
     try {
         const db = await getConnection();
+        const query = `
+            SELECT p.*
+            FROM productos p
+            JOIN categorias c ON p.categoria = c.id
+            WHERE p.activo = true
+            AND c.proveedor_id = ?;
+        `;
 
-        // Obtener las categorías que el proveedor ofrece
-        const [categorias] = await db.query('SELECT id FROM categorias WHERE proveedor_id = ?', [proveedorId]);
-        const categoriaIds = categorias.map(categoria => categoria.id);
-
-        // Obtener productos que pertenecen a esas categorías y están activos
-        const [productos] = await db.query(
-            'SELECT * FROM productos WHERE categoria IN (?) AND activo = 1',
-            [categoriaIds]
-        );
-
-        res.json(productos);
+        const [results] = await db.query(query, [proveedorId]);
+        res.json(results);
     } catch (err) {
-        console.error('Error al obtener productos:', err);
-        res.status(500).json({ error: 'Error al obtener productos' });
+        console.error('Error al obtener productos del proveedor:', err);
+        res.status(500).json({ error: 'Error al obtener productos del proveedor' });
     }
 });
+
 
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
