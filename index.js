@@ -504,7 +504,25 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
     }
 });
 
+// Endpoint para obtener los productos filtrados por proovedor
 
+app.get('/api/productos/:proveedorId', async (req, res) => {
+    const { proveedorId } = req.params;
+    try {
+        const db = await getConnection();
+        const query = `
+            SELECT p.id_producto, p.nombre, p.marca, p.modelo
+            FROM productos AS p
+            JOIN categorias AS c ON p.categoria = c.id
+            WHERE c.proveedor_id = ? AND p.activo = true
+        `;
+        const [results] = await db.query(query, [proveedorId]);
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener productos:', err);
+        res.status(500).json({ error: 'Error al obtener productos' });
+    }
+});
 
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
