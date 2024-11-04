@@ -533,8 +533,10 @@ app.get('/api/productos/por-proveedor', async (req, res) => {
         return res.status(400).json({ error: 'El proveedorId es necesario' });
     }
 
+    let db;
+
     try {
-        const db = await getConnection();
+        db = await getConnection();
         const query = `
             SELECT p.*
             FROM productos p
@@ -542,15 +544,16 @@ app.get('/api/productos/por-proveedor', async (req, res) => {
             WHERE p.activo = 1
             AND c.proveedor_id = ?;
         `;
-        
+
         // Log the query and parameters
-        console.log('Executing query:', query);
-        console.log('With parameters:', [proveedorId]);
+        console.log('Ejecutando consulta:', query);
+        console.log('Con parámetros:', [proveedorId]);
 
         const [results] = await db.query(query, [proveedorId]);
         console.log('Resultados de la consulta:', results); // Verificar los resultados de la consulta
 
         if (results.length === 0) {
+            console.log('No se encontraron productos para el proveedor:', proveedorId);
             return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
         }
 
@@ -558,6 +561,10 @@ app.get('/api/productos/por-proveedor', async (req, res) => {
     } catch (err) {
         console.error('Error al obtener productos del proveedor:', err);
         res.status(500).json({ error: 'Error al obtener productos del proveedor' });
+    } finally {
+        if (db) {
+            await db.end();
+        }
     }
 });
 
