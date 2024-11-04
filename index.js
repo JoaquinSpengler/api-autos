@@ -525,9 +525,10 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
 });
 
 // Endpoint para obtener productos activos específicos de un proveedor
+// Endpoint para obtener productos activos específicos de un proveedor
 app.get('/api/productos/por-proveedor', async (req, res) => {
     const proveedorId = parseInt(req.query.proveedorId, 10);
-    console.log('Proveedor ID:', proveedorId);
+    console.log('Proveedor ID:', proveedorId); // Verificar el valor de proveedorId
 
     if (!proveedorId) {
         return res.status(400).json({ error: 'El proveedorId es necesario' });
@@ -542,8 +543,13 @@ app.get('/api/productos/por-proveedor', async (req, res) => {
             WHERE p.activo = 1
             AND c.proveedor_id = ?;
         `;
+        
+        // Log the query and parameters
+        console.log('Executing query:', query);
+        console.log('With parameters:', [proveedorId]);
 
         const [results] = await db.query(query, [proveedorId]);
+        console.log('Resultados de la consulta:', results); // Verificar los resultados de la consulta
 
         if (results.length === 0) {
             return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
@@ -555,8 +561,6 @@ app.get('/api/productos/por-proveedor', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener productos del proveedor' });
     }
 });
-
-
 
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
