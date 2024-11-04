@@ -311,17 +311,18 @@ app.get('/api/conductores', async (req, res) => {
 // ----------------------------------- PROOVEDOR ENDPOINTS -----------------------------------
 
 
-// Endpoint para obtener todos los proveedores
+// Endpoint para obtener solo proveedores activos
 app.get('/api/proveedores', async (req, res) => {
     try {
         const db = await getConnection();
-        const [results] = await db.query('SELECT * FROM proveedores');
+        const [results] = await db.query('SELECT * FROM proveedores WHERE activo = true');
         res.json(results);
     } catch (err) {
         console.error('Error al obtener proveedores:', err);
         res.status(500).json({ error: 'Error al obtener proveedores' });
     }
 });
+
 
 // Endpoint para obtener un proveedor por ID
 app.get('/api/proveedores/:id', async (req, res) => {
