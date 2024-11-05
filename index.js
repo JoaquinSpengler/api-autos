@@ -9,7 +9,7 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5175'], // Permitir ambos orígenes
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
 }));
@@ -506,13 +506,13 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
     }
 });
 
-// Endpoint para obtener productos activos específicos de un proveedor por nombre
-app.get('/api/productos/productos-por-proveedor/:proveedorNombre', async (req, res) => {
-    const { proveedorNombre } = req.params;
-    console.log('Nombre del proveedor recibido:', proveedorNombre);
+// Endpoint para obtener productos activos específicos de un proveedor
+app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) => {
+    const { proveedorId } = req.params;
+    console.log('Proveedor ID recibido:', proveedorId);
 
-    if (!proveedorNombre) {
-        return res.status(400).json({ error: 'El nombre del proveedor es necesario' });
+    if (!proveedorId) {
+        return res.status(400).json({ error: 'El proveedorId es necesario' });
     }
 
     let db;
@@ -523,19 +523,18 @@ app.get('/api/productos/productos-por-proveedor/:proveedorNombre', async (req, r
             SELECT p.id_producto, p.nombre, p.marca, p.modelo
             FROM productos p
             JOIN categorias c ON p.categoria = c.id
-            JOIN proveedores pr ON c.proveedor_id = pr.id_proveedor
             WHERE p.activo = 1
-            AND pr.nombre = ?;
+            AND c.proveedor_id = ?;
         `;
 
         console.log('Ejecutando consulta:', query);
-        console.log('Con parámetros:', [proveedorNombre]);
+        console.log('Con parámetros:', [proveedorId]);
 
-        const [results] = await db.query(query, [proveedorNombre]);
+        const [results] = await db.query(query, [proveedorId]);
         console.log('Resultados de la consulta:', results);
 
         if (results.length === 0) {
-            console.log('No se encontraron productos para el proveedor:', proveedorNombre);
+            console.log('No se encontraron productos para el proveedor:', proveedorId);
             return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
         }
 
@@ -549,7 +548,6 @@ app.get('/api/productos/productos-por-proveedor/:proveedorNombre', async (req, r
         }
     }
 });
-
 
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
@@ -1104,7 +1102,6 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
         res.status(500).json({ error: 'Error al resolver la solicitud' });
     }
 });
-
 
 // Exportar la app para Vercel
 export default app;
