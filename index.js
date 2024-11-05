@@ -956,10 +956,16 @@ app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
         const db = await getConnection();
         await db.beginTransaction(); // Iniciar una transacción
 
+        // Generar un número de orden único
+        let numeroOrden;
+        do {
+            numeroOrden = generarNumeroOrden(); // Función para generar un número de orden aleatorio
+        } while (await existeNumeroOrden(db, numeroOrden)); // Verificar si el número de orden ya existe
+
         // Insertar la nueva orden de compra en la tabla `ordenes_de_compra`
         const [result] = await db.query(
-            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado) VALUES (?, NOW(), ?, ?)',
-            [id_proveedor, total, 'creada'] // Se establece el estado en 'creada' por defecto
+            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), ?, ?, ?)',
+            [id_proveedor, total, 'creada', numeroOrden] 
         );
         const id_orden_de_compra = result.insertId; // Obtener el ID de la nueva orden
 
@@ -979,6 +985,27 @@ app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
         res.status(500).json({ error: 'Error al agregar la orden de compra', details: err.message });
     }
 });
+
+// Función para generar un número de orden aleatorio
+function generarNumeroOrden() {
+    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let numero = '#';
+    for (let i = 0; i < 2; i++) {
+        numero += letras.charAt(Math.floor(Math.random() * letras.length));
+    }
+    for (let i = 0; i < 4; i++) {
+        numero += Math.floor(Math.random() * 10);
+    }
+    return numero;
+}
+
+// Función para verificar si el número de orden ya existe
+async function existeNumeroOrden(db, numeroOrden) {
+    const [rows] = await db.query('SELECT 1 FROM ordenes_de_compra WHERE numero_orden = ?', [numeroOrden]);
+    return rows.length > 0;
+}
+
+
 //--------------------------ENPOINTS PARA TOKEN---------------------------------
 
 // Endpoint para crear solicitud de mecánico
