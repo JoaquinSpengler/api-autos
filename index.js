@@ -341,7 +341,7 @@ app.get('/api/proveedores/:id', async (req, res) => {
 });
 
 // Endpoint para actualizar un proveedor por ID
-app.put('/api/proveedores/:id', async (req, res) => {
+app.put('/api/proveedores/modificar-proveedor/:id', async (req, res) => {
     const proveedorId = req.params.id;
     const { nombre, cuil, email, direccion, telefono, activo } = req.body;
 
