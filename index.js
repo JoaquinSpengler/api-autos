@@ -526,7 +526,7 @@ app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) 
             WHERE p.activo = 1
             AND c.proveedor_id = ?;
         `;
-
+//
         console.log('Ejecutando consulta:', query);
         console.log('Con parámetros:', [proveedorId]);
 
