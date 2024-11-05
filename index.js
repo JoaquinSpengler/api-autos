@@ -312,7 +312,7 @@ app.get('/api/conductores', async (req, res) => {
 
 
 // Endpoint para obtener solo proveedores activos
-app.get('/api/proveedores', async (req, res) => {
+app.get('/api/proveedores/activos', async (req, res) => {
     try {
         const db = await getConnection();
         const [results] = await db.query('SELECT * FROM proveedores WHERE activo = true');
