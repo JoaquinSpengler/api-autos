@@ -507,7 +507,7 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
 });
 
 // Endpoint para obtener productos activos específicos de un proveedor
-app.get('/api/productos/:proveedorId', async (req, res) => {
+app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) => {
     const { proveedorId } = req.params;
     console.log('Proveedor ID recibido:', proveedorId);
 
