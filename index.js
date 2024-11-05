@@ -746,28 +746,32 @@ app.put('/api/autos/flota', async (req, res) => {
 // Endpoint para obtener todas las órdenes de compra y sus productos
 app.get('/api/ordenes_de_compra', async (req, res) => {
     try {
-        const db = await getConnection();
-        const [ordenes] = await db.query('SELECT * FROM ordenes_de_compra');
-
-        // Para cada orden, obtener sus productos asociados
-        const ordenesConProductos = await Promise.all(ordenes.map(async (orden) => {
-            const [productos] = await db.query(`
-                SELECT p.id_producto, p.nombre, op.cantidad
-                FROM ordenes_productos op
-                JOIN productos p ON op.id_producto = p.id_producto
-                WHERE op.id_orden_de_compra = ?
-            `, [orden.id_orden_de_compra]);
-
-            return { ...orden, productos };
-        }));
-
-        res.json(ordenesConProductos);
+      const db = await getConnection();
+      // Modifica la consulta para incluir el nombre del proveedor
+      const [ordenes] = await db.query(`
+        SELECT oc.*, pr.nombre AS nombre_proveedor 
+        FROM ordenes_de_compra oc
+        JOIN proveedores pr ON oc.id_proveedor = pr.id_proveedor
+      `);
+  
+      // Para cada orden, obtener sus productos asociados (sin cambios)
+      const ordenesConProductos = await Promise.all(ordenes.map(async (orden) => {
+        const [productos] = await db.query(`
+          SELECT p.id_producto, p.nombre, op.cantidad
+          FROM ordenes_productos op
+          JOIN productos p ON op.id_producto = p.id_producto
+          WHERE op.id_orden_de_compra = ?
+        `, [orden.id_orden_de_compra]);
+  
+        return { ...orden, productos };
+      }));
+  
+      res.json(ordenesConProductos);
     } catch (err) {
-        console.error('Error al obtener las órdenes de compra:', err);
-        res.status(500).json({ error: 'Error al obtener las órdenes de compra', details: err.message });
+      console.error('Error al obtener las órdenes de compra:', err);
+      res.status(500).json({ error: 'Error al obtener las órdenes de compra', details: err.message });
     }
-});
-
+  });
 // Endpoint para cambiar el estado de una orden de compra de creada a aceptada
 app.put('/api/ordenes_de_compra/:id/aceptar', async (req, res) => {
     try {
