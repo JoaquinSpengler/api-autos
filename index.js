@@ -945,7 +945,7 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
 
 
 // Endpoint para agregar una nueva orden de compra
-app.post('/api/ordenes_de_compra', async (req, res) => {
+app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
     const { id_proveedor, productos } = req.body; // Datos enviados desde el frontend
 
     if (!id_proveedor || !productos || productos.length === 0) {
