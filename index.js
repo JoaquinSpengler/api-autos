@@ -9,7 +9,7 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Permitir ambos orígenes
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5175'], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
 }));
@@ -526,26 +526,39 @@ app.get('/api/productos/:proveedorId', async (req, res) => {
 
 // Endpoint para obtener productos activos específicos de un proveedor
 app.get('/api/productos/por-proveedor', async (req, res) => {
-    const proveedorId = req.query.proveedorId;
+    const proveedorId = parseInt(req.query.proveedorId, 10);
+    console.log('Proveedor ID:', proveedorId); // Verificar el valor de proveedorId
+
+    if (!proveedorId) {
+        return res.status(400).json({ error: 'El proveedorId es necesario' });
+    }
 
     try {
-        const connection = await pool.getConnection();
-        const [rows, fields] = await connection.execute('SELECT p.* FROM productos p JOIN categorias c ON p.categoria = c.id WHERE p.activo = 1 AND c.proveedor_id = ?', [proveedorId]);
-        connection.release();
+        const db = await getConnection();
+        const query = `
+            SELECT p.*
+            FROM productos p
+            JOIN categorias c ON p.categoria = c.id
+            WHERE p.activo = 1
+            AND c.proveedor_id = ?;
+        `;
+        
+        // Log the query and parameters
+        console.log('Executing query:', query);
+        console.log('With parameters:', [proveedorId]);
 
-        if (rows.length === 0) {
-            return res.status(404).json({ error: 'No se encontraron productos para el proveedor' });
+        const [results] = await db.query(query, [proveedorId]);
+        console.log('Resultados de la consulta:', results); // Verificar los resultados de la consulta
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
         }
 
-        res.json(rows);
-    } catch (error) {
-        console.error('Error al obtener productos:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener productos del proveedor:', err);
+        res.status(500).json({ error: 'Error al obtener productos del proveedor' });
     }
-});
-
-app.listen(port, () => {
-    console.log(`Servidor escuchando en el puerto ${port}`);
 });
 
 
@@ -1101,6 +1114,7 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
         res.status(500).json({ error: 'Error al resolver la solicitud' });
     }
 });
+
 
 // Exportar la app para Vercel
 export default app;
