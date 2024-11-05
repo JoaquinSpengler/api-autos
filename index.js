@@ -506,13 +506,13 @@ app.put('/api/productos/:id/inactivo', async (req, res) => {
     }
 });
 
-// Endpoint para obtener productos activos específicos de un proveedor
-app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) => {
-    const { proveedorId } = req.params;
-    console.log('Proveedor ID recibido:', proveedorId);
+// Endpoint para obtener productos activos específicos de un proveedor por nombre
+app.get('/api/productos/productos-por-proveedor/:proveedorNombre', async (req, res) => {
+    const { proveedorNombre } = req.params;
+    console.log('Nombre del proveedor recibido:', proveedorNombre);
 
-    if (!proveedorId) {
-        return res.status(400).json({ error: 'El proveedorId es necesario' });
+    if (!proveedorNombre) {
+        return res.status(400).json({ error: 'El nombre del proveedor es necesario' });
     }
 
     let db;
@@ -523,18 +523,19 @@ app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) 
             SELECT p.id_producto, p.nombre, p.marca, p.modelo
             FROM productos p
             JOIN categorias c ON p.categoria = c.id
+            JOIN proveedores pr ON c.proveedor_id = pr.id_proveedor
             WHERE p.activo = 1
-            AND c.proveedor_id = ?;
+            AND pr.nombre = ?;
         `;
 
         console.log('Ejecutando consulta:', query);
-        console.log('Con parámetros:', [proveedorId]);
+        console.log('Con parámetros:', [proveedorNombre]);
 
-        const [results] = await db.query(query, [proveedorId]);
+        const [results] = await db.query(query, [proveedorNombre]);
         console.log('Resultados de la consulta:', results);
 
         if (results.length === 0) {
-            console.log('No se encontraron productos para el proveedor:', proveedorId);
+            console.log('No se encontraron productos para el proveedor:', proveedorNombre);
             return res.status(404).json({ error: 'No se encontraron productos para este proveedor' });
         }
 
@@ -548,6 +549,7 @@ app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) 
         }
     }
 });
+
 
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
