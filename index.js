@@ -960,8 +960,17 @@ app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
         let total = 0;
         for (const producto of productos) {
             const [productoData] = await db.query('SELECT precio FROM productos WHERE id_producto = ?', [producto.id_producto]);
-            const precio = productoData[0].precio;
-            total += precio * producto.cantidad;
+            
+            // Verificar si se encontró el producto
+            if (productoData.length > 0) {
+                const precio = productoData[0].precio;
+                total += precio * producto.cantidad;
+            } else {
+                // Manejar el caso donde no se encuentra el producto
+                console.error(`Producto con ID ${producto.id_producto} no encontrado`);
+                // Puedes lanzar un error o continuar con el siguiente producto
+                // throw new Error(`Producto con ID ${producto.id_producto} no encontrado`); 
+            }
         }
 
         // Insertar la nueva orden de compra en la tabla `ordenes_de_compra`
