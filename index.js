@@ -461,7 +461,7 @@ app.get('/api/productos/:id', async (req, res) => {
 });
 
 // Endpoint para modificar los datos de un producto
-app.put('/api/productos/:id', async (req, res) => {
+app.put('/api/productos/modificar-producto/:id', async (req, res) => {
     const productoId = req.params.id;
     const { nombre, marca, modelo, categoria, cantidad, activo } = req.body;
 
@@ -484,6 +484,7 @@ app.put('/api/productos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar producto' });
     }
 });
+
 
 // Endpoint para pasar un producto a estado inactivo
 app.put('/api/productos/:id/inactivo', async (req, res) => {
