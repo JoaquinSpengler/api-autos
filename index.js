@@ -520,7 +520,7 @@ app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) 
     try {
         db = await getConnection();
         const query = `
-            SELECT p.id_producto, p.nombre, p.marca, p.modelo
+            SELECT p.*
             FROM productos p
             JOIN categorias c ON p.categoria = c.id
             WHERE p.activo = 1
