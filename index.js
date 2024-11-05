@@ -986,8 +986,7 @@ app.post('/api/ordenes_de_compra', async (req, res) => {
 
 //--------------------------ENPOINTS PARA TOKEN---------------------------------
 
-//enpoint para crear solicitud de mecanico
-
+// Endpoint para crear solicitud de mecánico
 app.post('/api/solicitudes', async (req, res) => {
     const {
         id_conductor,
@@ -1003,7 +1002,12 @@ app.post('/api/solicitudes', async (req, res) => {
     } = req.body;
 
     try {
+        // Verifica la conexión a la base de datos
         const db = await getConnection();
+
+        // Logging para verificar que los datos están llegando
+        console.log('Datos recibidos en el backend:', req.body);
+
         const query = `INSERT INTO Solicitud_Mecanico (
             id_conductor, id_mecanico, patente_auto, token, descripcion, foto,
             latitud, longitud, estado, fecha_solicitud
@@ -1025,9 +1029,10 @@ app.post('/api/solicitudes', async (req, res) => {
         res.json({ id_peticion: result.insertId });
     } catch (err) {
         console.error('Error al crear solicitud:', err);
-        res.status(500).json({ error: 'Error al crear solicitud' });
+        res.status(500).json({ error: 'Error al crear solicitud', details: err.message });
     }
 });
+
 
 
 //endpoint para ver las solicitudes de mecanico  pendientes
