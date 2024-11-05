@@ -9,7 +9,7 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Permitir ambos orígenes
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5175'], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
 }));
@@ -1104,6 +1104,7 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
         res.status(500).json({ error: 'Error al resolver la solicitud' });
     }
 });
+
 
 // Exportar la app para Vercel
 export default app;
