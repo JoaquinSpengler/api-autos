@@ -749,9 +749,9 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
       const db = await getConnection();
       // Modifica la consulta para incluir el nombre del proveedor
       const [ordenes] = await db.query(`
-        SELECT oc.*, pr.nombre AS nombre_proveedor 
-        FROM ordenes_de_compra oc
-        JOIN proveedores pr ON oc.id_proveedor = pr.id_proveedor
+            SELECT oc.*, pr.nombre AS nombre_proveedor, oc.numero_orden 
+            FROM ordenes_de_compra oc
+            JOIN proveedores pr ON oc.id_proveedor = pr.id_proveedor
       `);
   
       // Para cada orden, obtener sus productos asociados (sin cambios)
@@ -772,6 +772,8 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
       res.status(500).json({ error: 'Error al obtener las órdenes de compra', details: err.message });
     }
   });
+
+
 // Endpoint para cambiar el estado de una orden de compra de creada a aceptada
 app.put('/api/ordenes_de_compra/:id/aceptar', async (req, res) => {
     try {
