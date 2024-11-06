@@ -606,111 +606,21 @@ app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) 
 // Endpoint para restar una cantidad de productos del stock
 
 app.put('/api/productos/:nombre/restar-cantidad-nombre', async (req, res) => {
-    const productoNombre = req.params.nombre;
-    const { cantidad: cantidadARestar } = req.body; // Renombrando para mayor claridad
+    const productoNombre = req.params.nombre; // Obtener el nombre del producto de la URL
+    const { cantidad } = req.body;
   
     try {
       const db = await getConnection();
-  
-      // 1. Obtener la cantidad actual y la cantidad mínima del producto
-      const [producto] = await db.query(
-        'SELECT cantidad, cantidad_minima FROM productos WHERE nombre = ?',
-        [productoNombre]
-      );
-  
-      if (producto.length === 0) {
-        return res.status(404).json({ error: 'Producto no encontrado' });
-      }
-  
-      const cantidadActual = producto[0].cantidad;
-      const cantidadMinima = producto[0].cantidad_minima;
-  
-      // 2. Calcular la nueva cantidad
-      const nuevaCantidad = cantidadActual - cantidadARestar;
-  
-      // 3. Actualizar la cantidad del producto
       await db.query(
-        'UPDATE productos SET cantidad = ? WHERE nombre = ?',
-        [nuevaCantidad, productoNombre]
+        'UPDATE productos SET cantidad = cantidad - ? WHERE nombre = ?', // Actualizar la cantidad donde el nombre coincida
+        [cantidad, productoNombre]
       );
-  
-      // 4. Verificar si la nueva cantidad es menor que la cantidad mínima
-      if (nuevaCantidad < cantidadMinima) {
-        await db.query(
-          'UPDATE productos SET solicitado_orden_de_compra = true WHERE nombre = ?',
-          [productoNombre]
-        );
-      }
-  
       res.json({ message: 'Cantidad del producto actualizada correctamente' });
     } catch (err) {
       console.error('Error al actualizar la cantidad del producto:', err);
       res.status(500).json({ error: 'Error al actualizar la cantidad del producto' });
     }
   });
-
-  const generarOrdenDeCompra = async (productoNombre) => {
-    try {
-      const db = await getConnection();
-  
-      // 1. Obtener el ID del proveedor y la cantidad mínima del producto
-      const [resultado] = await db.query(
-        `SELECT c.id_proveedor, p.cantidad_minima 
-         FROM productos p
-         JOIN categorias c ON p.categoria = c.id_categoria 
-         WHERE p.nombre = ?`,
-        [productoNombre]
-      );
-      const idProveedor = resultado[0].id_proveedor;
-      const cantidadMinima = resultado[0].cantidad_minima;
-  
-      // 2. Verificar si ya existe una orden de compra para el proveedor
-      const [orden] = await db.query(
-        'SELECT id_orden_de_compra FROM ordenes_de_compra WHERE id_proveedor = ? AND estado = "pendiente"',
-        [idProveedor]
-      );
-  
-      if (orden.length > 0) {
-        // 3a. Si existe una orden pendiente, agregar el producto a la orden existente
-        const idOrdenDeCompra = orden[0].id_orden_de_compra;
-  
-        // Obtener el id_producto a partir del nombre
-        const [producto] = await db.query(
-          'SELECT id_producto FROM productos WHERE nombre = ?',
-          [productoNombre]
-        );
-        const idProducto = producto[0].id_producto;
-  
-        await db.query(
-          'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-          [idOrdenDeCompra, idProducto, cantidadMinima * 2] // Usar idProducto
-        );
-      } else {
-        // 3b. Si no existe una orden pendiente, crear una nueva orden de compra
-        const [result] = await db.query(
-          'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado) VALUES (?, NOW(), 0, "pendiente")',
-          [idProveedor]
-        );
-        const idOrdenDeCompra = result.insertId;
-  
-        // Obtener el id_producto a partir del nombre
-        const [producto] = await db.query(
-          'SELECT id_producto FROM productos WHERE nombre = ?',
-          [productoNombre]
-        );
-        const idProducto = producto[0].id_producto;
-  
-        // Agregar el producto a la nueva orden de compra
-        await db.query(
-          'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-          [idOrdenDeCompra, idProducto, cantidadMinima * 2] // Usar idProducto
-        );
-      }
-    } catch (error) {
-      console.error('Error al generar la orden de compra:', error);
-      // Puedes mostrar un mensaje de error al usuario o manejar el error de otra forma
-    }
-  };
 
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
