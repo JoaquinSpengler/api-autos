@@ -2,7 +2,6 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
-const jwt = require('jsonwebtoken');  // Asegúrate de haber instalado jsonwebtoken
 
 dotenv.config();
 
@@ -1358,13 +1357,12 @@ app.post('/api/rutas', async (req, res) => {
 });
 
 
+
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
         const connection = await mysql.createConnection(dbConfig);
-        console.log("Conexión exitosa a la base de datos");
-
         const [users] = await connection.execute('SELECT * FROM usuario WHERE email = ?', [email]);
 
         if (users.length === 0) {
@@ -1373,22 +1371,26 @@ app.post('/api/login', async (req, res) => {
 
         const user = users[0];
 
-        // Verificar la contraseña directamente (esto no es seguro)
+        // Verificación de la contraseña
         if (user.password !== password) {
             return res.status(400).json({ error: 'Contraseña incorrecta' });
         }
 
-        // Generar un token JWT con la información del usuario
-        const payload = {
-            id: user.id_usuario,
-            email: user.email,
-            rol: user.rol
-        };
+        // Crear un ID de sesión único (sin usar JWT)
+        const sessionId = uuid.v4();  // Genera un identificador único para la sesión
 
-        // Aquí usamos una clave secreta para firmar el token (debería estar en una variable de entorno)
-        const token = jwt.sign(payload, 'mi_clave_secreta', { expiresIn: '1h' });
+        // Almacenar el sessionId en la base de datos, asociado al usuario
+        await connection.execute('INSERT INTO sesiones (user_id, session_id) VALUES (?, ?)', [user.id, sessionId]);
 
-        res.status(200).json({ message: 'Login exitoso', token });
+        // Enviar el sessionId en una cookie al cliente
+        res.cookie('session_id', sessionId, {
+            httpOnly: true,
+            secure: true,  // Solo si usas HTTPS
+            maxAge: 3600000, // 1 hora
+        });
+
+        res.status(200).json({ message: 'Login exitoso' });
+
     } catch (error) {
         console.error("Error en la conexión a la base de datos o en el login:", error);
         res.status(500).json({ error: 'Error interno del servidor', message: error.message });
