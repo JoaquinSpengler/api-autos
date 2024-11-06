@@ -1143,7 +1143,11 @@ app.post('/informes/crear-informe-accidente', async (req, res) => {
     console.log('Datos recibidos:', req.body); // Imprimir los datos recibidos
   
     try {
-  
+        console.log("Datos que se enviarán a la base de datos:", { 
+            descripcion, 
+            taller, 
+            mismaUbicacion 
+          });
       // Guardar el informe en la tabla "informes"
       const result = await db.query(
         'INSERT INTO informes (descripcion, taller, misma_ubicacion) VALUES (?, ?, ?)',
