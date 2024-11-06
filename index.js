@@ -2,6 +2,9 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+
 
 dotenv.config();
 
@@ -1357,20 +1360,45 @@ app.post('/api/rutas', async (req, res) => {
 });
 
 
-async function loginUsuario(dni) {
-    try {
-        const response = await fetch(`/api/usuarios?dni=${dni}`);
-        const usuario = await response.json();
+// Endpoint para login
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
 
-        if (!usuario.habilitado) {
-            console.log('Usuario inhabilitado. Contacta al administrador.');
-            return;
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+
+        const [rows] = await connection.execute(
+            'SELECT * FROM users WHERE email = ?',
+            [email]
+        );
+
+        // Verifica si el usuario existe
+        if (rows.length === 0) {
+            return res.status(401).json({ message: 'Email o contraseña incorrectos' });
         }
-        console.log(`Bienvenido, ${usuario.nombre} ${usuario.apellido}. Rol: ${usuario.rol}`);
+
+        const user = rows[0];
+
+        // Compara la contraseña
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Email o contraseña incorrectos' });
+        }
+
+        // Genera el token JWT
+        const token = jwt.sign(
+            { id: user.id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        res.json({ message: 'Login exitoso', token });
     } catch (error) {
-        console.error('Error en el inicio de sesión:', error);
+        console.error('Error al autenticar usuario:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
     }
-}
+});
 
 
 // Exportar la app para Vercel
