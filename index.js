@@ -467,17 +467,27 @@ app.get('/api/productos', async (req, res) => {
 
 // Endpoint para agregar un nuevo producto
 app.post('/api/productos/agregar-producto', async (req, res) => {
-    const { nombre, marca, modelo, categoria, cantidad, activo } = req.body;
+    const { nombre, marca, modelo, categoria, cantidad, cantidad_minima, activo } = req.body; // Agrega cantidad_minima
 
     try {
         const db = await getConnection();
         const query = `
-            INSERT INTO productos (nombre, marca, modelo, categoria, cantidad, activo) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO productos (nombre, marca, modelo, categoria, cantidad, cantidad_minima, activo) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
-        const [result] = await db.query(query, [nombre, marca, modelo, categoria, cantidad, activo]);
+        // Incluye cantidad_minima en la consulta
+        const [result] = await db.query(query, [nombre, marca, modelo, categoria, cantidad, cantidad_minima, activo]); 
 
-        res.status(201).json({ id: result.insertId, nombre, marca, modelo, categoria, cantidad, activo });
+        res.status(201).json({ 
+            id: result.insertId, 
+            nombre, 
+            marca, 
+            modelo, 
+            categoria, 
+            cantidad, 
+            cantidad_minima, // Devuelve cantidad_minima en la respuesta
+            activo 
+        });
     } catch (err) {
         console.error('Error al agregar producto:', err);
         res.status(500).json({ error: 'Error al agregar producto' });
