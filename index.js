@@ -1359,47 +1359,39 @@ app.post('/api/rutas', async (req, res) => {
     }
 });
 
-
-// Endpoint para login
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
-
-    try {
-        const connection = await mysql.createConnection(dbConfig);
-
-        const [rows] = await connection.execute(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
-
-        // Verifica si el usuario existe
-        if (rows.length === 0) {
-            return res.status(401).json({ message: 'Email o contraseña incorrectos' });
-        }
-
-        const user = rows[0];
-
-        // Compara la contraseña
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Email o contraseña incorrectos' });
-        }
-
-        // Genera el token JWT
-        const token = jwt.sign(
-            { id: user.id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        res.json({ message: 'Login exitoso', token });
-    } catch (error) {
-        console.error('Error al autenticar usuario:', error);
-        res.status(500).json({ message: 'Error en el servidor' });
+  
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email y contraseña son requeridos' });
     }
-});
-
-
+  
+    try {
+      const connection = await mysql.createConnection(dbConfig);
+  
+      // Verifica si el usuario existe en la base de datos
+      const [rows] = await connection.execute('SELECT * FROM users WHERE email = ?', [email]);
+      if (rows.length === 0) {
+        return res.status(401).json({ message: 'Usuario no encontrado' });
+      }
+  
+      const user = rows[0];
+      // Compara la contraseña usando bcrypt
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
+        return res.status(401).json({ message: 'Contraseña incorrecta' });
+      }
+  
+      // Crea un token JWT si el login es exitoso
+      const token = jwt.sign({ id: user.id_usuario }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  
+      return res.status(200).json({ message: 'Login exitoso', token });
+  
+    } catch (error) {
+      console.error('Error en el login:', error);
+      return res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  });
+  
 // Exportar la app para Vercel
 export default app;
