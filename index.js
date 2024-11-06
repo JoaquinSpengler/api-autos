@@ -11,7 +11,8 @@ const app = express();
 app.use(cors({
     origin: ['localhost:5173','http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5175', 'http://localhost:5180',"https://radiador-spring-tp.vercel.app"], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
-    allowedHeaders: 'Content-Type', 'Authorization'
+    allowedHeaders: 'Content-Type-Authorization',
+    credentials: true
 }));
 
 
@@ -1526,90 +1527,5 @@ app.post('/api/rechazar-ruta', async (req, res) => {
 });
 
 
-
-//-------------------------------usuario----------------------
-app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        const connection = await mysql.createConnection(dbConfig);
-        const [users] = await connection.execute('SELECT * FROM usuario WHERE email = ?', [email]);
-
-        if (users.length === 0) {
-            return res.status(400).json({ error: 'Usuario no encontrado' });
-        }
-
-        const user = users[0];
-
-        // Verificación de la contraseña
-        if (user.password !== password) {
-            return res.status(400).json({ error: 'Contraseña incorrecta' });
-        }
-
-        // Crear un ID de sesión único (sin usar JWT)
-        const sessionId = uuid.v4();  // Genera un identificador único para la sesión
-
-        // Almacenar el sessionId en la base de datos, asociado al usuario
-        await connection.execute('INSERT INTO sesiones (session_id,user_id) VALUES (?, ?)', [sessionId,user.id]);
-
-        // Enviar el sessionId en una cookie al cliente
-        res.cookie('session_id', sessionId, {
-            httpOnly: true,
-            secure: true,  // Solo si usas HTTPS
-            maxAge: 3600000, // 1 hora
-        });
-
-        res.status(200).json({ message: 'Login exitoso' });
-
-    } catch (error) {
-        console.error("Error en la conexión a la base de datos o en el login:", error);
-        res.status(500).json({ error: 'Error interno del servidor', message: error.message });
-    }
-});
-// Endpoint para verificar la sesión
-app.get('/api/check-session', async (req, res) => {
-    console.log("Cookies recibidas:", req.cookies);  // Depurar cookies
-
-    const { session_id } = req.cookies;  // Obtener el session_id de las cookies
-
-    if (!session_id) {
-        console.log("No se recibió session_id en las cookies.");
-        return res.status(401).json({ authenticated: false });
-    }
-
-    try {
-        const connection = await mysql.createConnection({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME
-        });
-
-        // Consultar la sesión en la base de datos
-        const [sessions] = await connection.execute('SELECT * FROM sesiones WHERE session_id = ?', [session_id]);
-
-        if (sessions.length === 0) {
-            console.log("No se encontró la sesión en la base de datos.");
-            return res.status(401).json({ authenticated: false });
-        }
-
-        const session = sessions[0];
-
-        // Consultar el usuario asociado a la sesión
-        const [user] = await connection.execute('SELECT * FROM usuario WHERE id_usuario = ?', [session.user_id]);
-
-        if (user.length === 0) {
-            console.log("No se encontró el usuario asociado a la sesión.");
-            return res.status(401).json({ authenticated: false });
-        }
-
-        // Responder con el rol del usuario si la sesión es válida
-        res.status(200).json({ authenticated: true, role: user[0].rol });
-    } catch (error) {
-        console.error("Error al verificar la sesión:", error);
-        res.status(500).json({ error: 'Error interno del servidor', message: error.message });
-    }
-});
-  
 // Exportar la app para Vercel
 export default app;
