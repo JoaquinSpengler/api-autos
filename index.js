@@ -605,15 +605,15 @@ app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) 
 
 // Endpoint para restar una cantidad de productos del stock
 
-app.put('/api/productos/:id/restar-cantidad', async (req, res) => {
-    const productoId = req.params.id;
+app.put('/api/productos/:nombre/restar-cantidad-nombre', async (req, res) => {
+    const productoNombre = req.params.nombre; // Obtener el nombre del producto de la URL
     const { cantidad } = req.body;
   
     try {
       const db = await getConnection();
       await db.query(
-        'UPDATE productos SET cantidad = cantidad - ? WHERE id_producto = ?',
-        [cantidad, productoId]
+        'UPDATE productos SET cantidad = cantidad - ? WHERE nombre = ?', // Actualizar la cantidad donde el nombre coincida
+        [cantidad, productoNombre]
       );
       res.json({ message: 'Cantidad del producto actualizada correctamente' });
     } catch (err) {
