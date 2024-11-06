@@ -654,12 +654,15 @@ app.put('/api/productos/:nombre/restar-cantidad-nombre', async (req, res) => {
       const db = await getConnection();
   
       // 1. Obtener el ID del proveedor y la cantidad mínima del producto
-      const [producto] = await db.query(
-        'SELECT id_proveedor, cantidad_minima FROM productos WHERE nombre = ?',
+      const [resultado] = await db.query(
+        `SELECT c.id_proveedor, p.cantidad_minima 
+         FROM productos p
+         JOIN categorias c ON p.categoria = c.id_categoria 
+         WHERE p.nombre = ?`,
         [productoNombre]
       );
-      const idProveedor = producto[0].id_proveedor;
-      const cantidadMinima = producto[0].cantidad_minima;
+      const idProveedor = resultado[0].id_proveedor;
+      const cantidadMinima = resultado[0].cantidad_minima;
   
       // 2. Verificar si ya existe una orden de compra para el proveedor
       const [orden] = await db.query(
@@ -670,9 +673,17 @@ app.put('/api/productos/:nombre/restar-cantidad-nombre', async (req, res) => {
       if (orden.length > 0) {
         // 3a. Si existe una orden pendiente, agregar el producto a la orden existente
         const idOrdenDeCompra = orden[0].id_orden_de_compra;
+  
+        // Obtener el id_producto a partir del nombre
+        const [producto] = await db.query(
+          'SELECT id_producto FROM productos WHERE nombre = ?',
+          [productoNombre]
+        );
+        const idProducto = producto[0].id_producto;
+  
         await db.query(
           'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-          [idOrdenDeCompra, producto.id_producto, cantidadMinima * 2]
+          [idOrdenDeCompra, idProducto, cantidadMinima * 2] // Usar idProducto
         );
       } else {
         // 3b. Si no existe una orden pendiente, crear una nueva orden de compra
@@ -682,10 +693,17 @@ app.put('/api/productos/:nombre/restar-cantidad-nombre', async (req, res) => {
         );
         const idOrdenDeCompra = result.insertId;
   
+        // Obtener el id_producto a partir del nombre
+        const [producto] = await db.query(
+          'SELECT id_producto FROM productos WHERE nombre = ?',
+          [productoNombre]
+        );
+        const idProducto = producto[0].id_producto;
+  
         // Agregar el producto a la nueva orden de compra
         await db.query(
           'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-          [idOrdenDeCompra, producto.id_producto, cantidadMinima * 2]
+          [idOrdenDeCompra, idProducto, cantidadMinima * 2] // Usar idProducto
         );
       }
     } catch (error) {
