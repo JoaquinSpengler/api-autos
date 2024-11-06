@@ -452,18 +452,18 @@ app.put('/api/proveedores/:id/inactivo', async (req, res) => {
 // ----------------------------------- PRODUCTO ENDPOINTS -----------------------------------
 
 
-
-// Endpoint para obtener todos los productos
+// Endpoint para obtener productos activos
 app.get('/api/productos', async (req, res) => {
     try {
-        const db = await getConnection();
-        const [results] = await db.query('SELECT * FROM productos');
-        res.json(results);
+      const db = await getConnection();
+      // Consulta con activo = 1
+      const [results] = await db.query('SELECT * FROM productos WHERE activo = 1'); 
+      res.json(results);
     } catch (err) {
-        console.error('Error al obtener productos:', err);
-        res.status(500).json({ error: 'Error al obtener productos' });
+      console.error('Error al obtener productos:', err);
+      res.status(500).json({ error: 'Error al obtener productos' });
     }
-});
+  });
 
 // Endpoint para agregar un nuevo producto
 app.post('/api/productos/agregar-producto', async (req, res) => {
