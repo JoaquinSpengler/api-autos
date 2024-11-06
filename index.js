@@ -106,6 +106,29 @@ app.post('/api/autos', async (req, res) => {
     }
 });
 
+// Endpoint para obtener todas las patentes de todos los autos
+
+app.get('/api/autos/patentes', async (req, res) => {
+    try {
+        const { patente } = req.query; 
+        const db = await getConnection();
+        
+        let query = 'SELECT nro_patente FROM autos';
+        let queryParams = [];
+
+        if (patente) {
+            query += ' WHERE nro_patente = ?';
+            queryParams.push(patente);
+        }
+
+        const [results] = await db.query(query, queryParams);
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener patentes:', err);
+        res.status(500).json({ error: 'Error al obtener patentes' });
+    }
+});
+
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
 // Endpoint para obtener todos los mecánicos
