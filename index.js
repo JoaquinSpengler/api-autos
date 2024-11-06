@@ -1551,7 +1551,7 @@ app.post('/api/login', async (req, res) => {
         const sessionId = uuid.v4();  // Genera un identificador único para la sesión
 
         // Almacenar el sessionId en la base de datos, asociado al usuario
-        await connection.execute('INSERT INTO sesiones (user_id, session_id) VALUES (?, ?)', [user.id, sessionId]);
+        await connection.execute('INSERT INTO sesiones (session_id,user_id) VALUES (?, ?)', [sessionId,user.id]);
 
         // Enviar el sessionId en una cookie al cliente
         res.cookie('session_id', sessionId, {
@@ -1567,36 +1567,50 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor', message: error.message });
     }
 });
-
+// Endpoint para verificar la sesión
 app.get('/api/check-session', async (req, res) => {
-    const { session_id } = req.cookies; // Obtener el session_id de las cookies
+    console.log("Cookies recibidas:", req.cookies);  // Depurar cookies
+
+    const { session_id } = req.cookies;  // Obtener el session_id de las cookies
 
     if (!session_id) {
+        console.log("No se recibió session_id en las cookies.");
         return res.status(401).json({ authenticated: false });
     }
 
     try {
-        const connection = await mysql.createConnection(dbConfig);
+        const connection = await mysql.createConnection({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME
+        });
+
+        // Consultar la sesión en la base de datos
         const [sessions] = await connection.execute('SELECT * FROM sesiones WHERE session_id = ?', [session_id]);
 
         if (sessions.length === 0) {
+            console.log("No se encontró la sesión en la base de datos.");
             return res.status(401).json({ authenticated: false });
         }
 
         const session = sessions[0];
+
+        // Consultar el usuario asociado a la sesión
         const [user] = await connection.execute('SELECT * FROM usuario WHERE id_usuario = ?', [session.user_id]);
 
         if (user.length === 0) {
+            console.log("No se encontró el usuario asociado a la sesión.");
             return res.status(401).json({ authenticated: false });
         }
 
+        // Responder con el rol del usuario si la sesión es válida
         res.status(200).json({ authenticated: true, role: user[0].rol });
     } catch (error) {
         console.error("Error al verificar la sesión:", error);
         res.status(500).json({ error: 'Error interno del servidor', message: error.message });
     }
 });
-
   
 // Exportar la app para Vercel
 export default app;
