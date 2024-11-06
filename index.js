@@ -1243,6 +1243,40 @@ app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) =
     }
   });
 
+  // Endpoint para confirmar un informe
+app.put('/api/informes/:id/confirmar', async (req, res) => {
+    const informeId = req.params.id;
+  
+    try {
+      const db = await getConnection();
+      await db.query(
+        'UPDATE informes SET aceptado = true WHERE id_informe = ?',
+        [informeId]
+      );
+      res.json({ message: 'Informe confirmado correctamente' });
+    } catch (error) {
+      console.error('Error al confirmar el informe:', error);
+      res.status(500).json({ error: 'Error al confirmar el informe' });
+    }
+  });
+  
+  // Endpoint para denegar un informe
+  app.put('/api/informes/:id/denegar', async (req, res) => {
+    const informeId = req.params.id;
+  
+    try {
+      const db = await getConnection();
+      await db.query(
+        'UPDATE informes SET aceptado = false WHERE id_informe = ?',
+        [informeId]
+      );
+      res.json({ message: 'Informe denegado correctamente' });
+    } catch (error) {
+      console.error('Error al denegar el informe:', error);
+      res.status(500).json({ error: 'Error al denegar el informe' });
+    }
+  });
+
 //-----------------------------RUTAS-------------------------------
 
 // Endpoint para agregar una nueva ruta
