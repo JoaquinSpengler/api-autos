@@ -1220,6 +1220,64 @@ app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) =
     }
   });
 
+//-----------------------------RUTAS-------------------------------
+
+// Endpoint para agregar una nueva ruta
+app.post('/api/rutas', async (req, res) => {
+    const {
+        conductor,
+        dni_conductor,
+        latitudA,
+        longitudA,
+        latitudB,
+        longitudB,
+        trazado,
+        estado,
+        distancia_total_km,
+        id_gerente
+    } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            INSERT INTO Rutas (conductor, dni_conductor, latitudA, longitudA, latitudB, longitudB, trazado, estado, distancia_total_km, id_gerente)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const [result] = await db.query(query, [
+            conductor,
+            dni_conductor,
+            latitudA,
+            longitudA,
+            latitudB,
+            longitudB,
+            JSON.stringify(trazado), // Convertir el trazado a JSON
+            estado || 'pendiente', // Valor por defecto 'pendiente' si no se proporciona
+            distancia_total_km,
+            id_gerente
+        ]);
+
+        res.json({
+            message: 'Ruta agregada exitosamente',
+            id_ruta: result.insertId,
+            conductor,
+            dni_conductor,
+            latitudA,
+            longitudA,
+            latitudB,
+            longitudB,
+            trazado,
+            estado,
+            distancia_total_km,
+            id_gerente
+        });
+    } catch (err) {
+        console.error('Error al agregar ruta:', err);
+        res.status(500).json({ error: 'Error al agregar ruta' });
+    }
+});
+
+
 // Exportar la app para Vercel
 export default app;
 
