@@ -116,16 +116,17 @@ app.get('/api/autos/nro_patente/:nro_patente', async (req, res) => {
         const [results] = await db.query(query, [nro_patente]);
 
         if (results.length > 0) {
-            const proveedor = results[0];
-            res.json(auto); // Devuelve el proveedor encontrado
+            const auto = results[0]; // Renombrado a 'auto' para coherencia
+            res.json(auto); // Devuelve el auto encontrado
         } else {
-            res.json(null); // Devuelve null si no se encuentra el proveedor
+            res.json(null); // Devuelve null si no se encuentra el auto
         }
     } catch (err) {
         console.error('Error al buscar el auto por patente:', err);
         res.status(500).json({ error: 'Error al buscar el auto' });
     }
 });
+
 
 
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
