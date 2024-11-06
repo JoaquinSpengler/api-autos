@@ -1397,6 +1397,35 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.get('/api/check-session', async (req, res) => {
+    const { session_id } = req.cookies; // Obtener el session_id de las cookies
+
+    if (!session_id) {
+        return res.status(401).json({ authenticated: false });
+    }
+
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [sessions] = await connection.execute('SELECT * FROM sesiones WHERE session_id = ?', [session_id]);
+
+        if (sessions.length === 0) {
+            return res.status(401).json({ authenticated: false });
+        }
+
+        const session = sessions[0];
+        const [user] = await connection.execute('SELECT * FROM usuario WHERE id = ?', [session.user_id]);
+
+        if (user.length === 0) {
+            return res.status(401).json({ authenticated: false });
+        }
+
+        res.status(200).json({ authenticated: true, role: user[0].rol });
+    } catch (error) {
+        console.error("Error al verificar la sesión:", error);
+        res.status(500).json({ error: 'Error interno del servidor', message: error.message });
+    }
+});
+
   
 // Exportar la app para Vercel
 export default app;
