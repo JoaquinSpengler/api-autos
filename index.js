@@ -1140,7 +1140,10 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
 app.post('/informes/crear-informe-accidente', async (req, res) => {
     const { descripcion, productosUtilizados, taller, mismaUbicacion } = req.body;
   
+    console.log('Datos recibidos:', req.body); // Imprimir los datos recibidos
+  
     try {
+  
       // Guardar el informe en la tabla "informes"
       const result = await db.query(
         'INSERT INTO informes (descripcion, taller, misma_ubicacion) VALUES (?, ?, ?)',
@@ -1151,6 +1154,7 @@ app.post('/informes/crear-informe-accidente', async (req, res) => {
   
       // Guardar los productos utilizados en la tabla "informe_productos"
       for (const producto of productosUtilizados) {
+        console.log('Insertando producto:', producto); // Imprimir cada producto que se inserta
         await db.query(
           'INSERT INTO informe_productos (id_informe, id_producto, cantidad) VALUES (?, ?, ?)',
           [informeId, producto.producto, producto.cantidad]
@@ -1160,7 +1164,17 @@ app.post('/informes/crear-informe-accidente', async (req, res) => {
       res.status(201).json({ message: 'Informe guardado correctamente' });
     } catch (error) {
       console.error('Error al guardar el informe:', error);
-      res.status(500).json({ error: 'Error al guardar el informe' });
+  
+      // Manejo de errores más específico (opcional)
+      if (error.code === 'ER_DUP_ENTRY') { 
+        // Ejemplo: error por clave duplicada
+        res.status(400).json({ error: 'Ya existe un informe con estos datos.' }); 
+      } else if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+        // Ejemplo: error por clave foránea inválida
+        res.status(400).json({ error: 'Uno o más productos no existen.' }); 
+      } else {
+        res.status(500).json({ error: 'Error al guardar el informe' });
+      }
     }
   });
   
