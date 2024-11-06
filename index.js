@@ -1545,7 +1545,7 @@ app.get('/api/check-session', async (req, res) => {
         }
 
         const session = sessions[0];
-        const [user] = await connection.execute('SELECT * FROM usuario WHERE id = ?', [session.user_id]);
+        const [user] = await connection.execute('SELECT * FROM usuario WHERE id_usuario = ?', [session.user_id]);
 
         if (user.length === 0) {
             return res.status(401).json({ authenticated: false });
