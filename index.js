@@ -1419,8 +1419,28 @@ app.post('/api/rutas', async (req, res) => {
     }
 });
 
+// Endpoint para obtener todas las rutas
+app.get('/api/rutas', async (req, res) => {
+    try {
+        const db = await getConnection();
+        const query = "SELECT * FROM Rutas";
+        const [rutas] = await db.query(query);
+
+        // Parsear el trazado de JSON a objeto si es necesario
+        const rutasParsed = rutas.map((ruta) => ({
+            ...ruta,
+            trazado: JSON.parse(ruta.trazado)
+        }));
+
+        res.json(rutasParsed);
+    } catch (err) {
+        console.error('Error al obtener rutas:', err);
+        res.status(500).json({ error: 'Error al obtener rutas' });
+    }
+});
 
 
+//-------------------------------usuario----------------------
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
