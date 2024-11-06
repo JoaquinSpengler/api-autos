@@ -1158,8 +1158,8 @@ app.post('api/informes/crear-informe-accidente', async (req, res) => {
       for (const producto of productosUtilizados) {
         console.log('Insertando producto:', producto); 
         await db.query(
-          'INSERT INTO informe_productos (id_informe, id_producto) VALUES (?, ?)',
-          [informeId, producto.producto]
+          'INSERT INTO informe_productos (id_informe, id_producto) VALUES (?, ?, ?)',
+          [informeId, producto.producto, producto.cantidad]
         );
       }
   
