@@ -1423,21 +1423,26 @@ app.post('/api/rutas', async (req, res) => {
 app.get('/api/ver-rutas', async (req, res) => {
     try {
         const db = await getConnection();
+        console.log("Conexión establecida:", db);
+
         const query = "SELECT * FROM Rutas";
         const [rutas] = await db.query(query);
 
-        // Parsear el trazado de JSON a objeto si es necesario
+        console.log("Rutas obtenidas de la base de datos:", rutas);
+
+        // Temporalmente quitamos JSON.parse para probar si es el problema
         const rutasParsed = rutas.map((ruta) => ({
             ...ruta,
-            trazado: JSON.parse(ruta.trazado)
+            trazado: ruta.trazado // sin parseo para diagnosticar
         }));
 
         res.json(rutasParsed);
     } catch (err) {
-        console.error('Error al obtener rutas:', err);
+        console.error('Error al obtener rutas:', err.message);
         res.status(500).json({ error: 'Error al obtener rutas' });
     }
 });
+
 
 
 //-------------------------------usuario----------------------
