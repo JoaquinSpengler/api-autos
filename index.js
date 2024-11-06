@@ -106,27 +106,24 @@ app.post('/api/autos', async (req, res) => {
     }
 });
 
-// Endpoint para obtener todas las patentes de todos los autos
+// Endpoint para puscar un auto por patente
 
-app.get('/api/autos/patentes', async (req, res) => {
+app.get('/api/autos/nro_patente/:nro_patente', async (req, res) => {
+    const { nro_patente } = req.params;
     try {
-        const { patente } = req.query; 
         const db = await getConnection();
-        
-        let query = 'SELECT nro_patente FROM autos';
-        let queryParams = [];
+        const query = 'SELECT * FROM autos WHERE nro_patente = ?';
+        const [results] = await db.query(query, [nro_patente]);
 
-        if (patente) {
-            query += ' WHERE nro_patente = ?';
-            queryParams.push(patente);
+        if (results.length > 0) {
+            const proveedor = results[0];
+            res.json(auto); // Devuelve el proveedor encontrado
+        } else {
+            res.json(null); // Devuelve null si no se encuentra el proveedor
         }
-
-        const [results] = await db.query(query, queryParams);
-        // Enviar una respuesta vacía si no hay resultados
-        res.json(results.length > 0 ? results : []);
     } catch (err) {
-        console.error('Error al obtener patentes:', err);
-        res.status(500).json({ error: 'Error al obtener patentes' });
+        console.error('Error al buscar el auto por patente:', err);
+        res.status(500).json({ error: 'Error al buscar el auto' });
     }
 });
 
