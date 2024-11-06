@@ -1263,12 +1263,13 @@ app.put('/api/informes/:id/confirmar', async (req, res) => {
   // Endpoint para denegar un informe
   app.put('/api/informes/:id/denegar', async (req, res) => {
     const informeId = req.params.id;
+    const { motivo } = req.body; // Obtener el motivo del cuerpo de la solicitud
   
     try {
       const db = await getConnection();
       await db.query(
-        'UPDATE informes SET aceptado = false WHERE id_informe = ?',
-        [informeId]
+        'UPDATE informes SET aceptado = false, motivo_rechazo = ? WHERE id_informe = ?',
+        [motivo, informeId]
       );
       res.json({ message: 'Informe denegado correctamente' });
     } catch (error) {
