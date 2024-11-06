@@ -1293,7 +1293,7 @@ app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) =
     try {
       const db = await getConnection();
       const [rows] = await db.query(
-        `SELECT p.nombre, p.marca, p.modelo, ip.cantidad
+        `SELECT *
         FROM informe_productos ip
         JOIN productos p ON ip.id_producto = p.id_producto
         WHERE ip.id_informe = ?`,
