@@ -1105,6 +1105,45 @@ async function existeNumeroOrden(db, numeroOrden) {
     return rows.length > 0;
 }
 
+// Endpoint para generar ordenes de compra automaticas
+
+app.post('/api/ordenes-de-compra/generar-ordenes', async (req, res) => {
+    try {
+      const db = await getConnection();
+  
+      // 1. Obtener los productos con cantidad menor a la cantidad mínima
+      const [productos] = await db.query(
+        `SELECT p.nombre, c.id_proveedor, p.cantidad_minima, p.id_producto
+         FROM productos p
+         JOIN categorias c ON p.categoria = c.id_categoria
+         WHERE p.cantidad < p.cantidad_minima`
+      );
+  
+      // 2. Generar una orden de compra para cada producto
+      for (const producto of productos) {
+        const { id_proveedor, cantidad_minima, id_producto } = producto;
+  
+        // Crear una nueva orden de compra
+        const [result] = await db.query(
+          'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado) VALUES (?, NOW(), 0, "creada")',
+          [id_proveedor]
+        );
+        const idOrdenDeCompra = result.insertId;
+  
+        // Agregar el producto a la orden de compra
+        await db.query(
+          'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
+          [idOrdenDeCompra, id_producto, cantidad_minima * 2]
+        );
+      }
+  
+      res.json({ message: 'Órdenes de compra generadas correctamente' });
+    } catch (error) {
+      console.error('Error al generar las órdenes de compra:', error);
+      res.status(500).json({ error: 'Error al generar las órdenes de compra' });
+    }
+  });
+
 
 //--------------------------ENPOINTS PARA TOKEN---------------------------------
 
