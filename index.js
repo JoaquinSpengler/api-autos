@@ -1186,6 +1186,19 @@ app.post('/api/informes/:id/agregar-producto', async (req, res) => {
     }
   });
 
+// Endpoint para obtener los informes con misma ubicacion = true
+
+app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
+    try {
+      const db = await getConnection();
+      const [rows] = await db.query('SELECT * FROM informes WHERE misma_ubicacion = true');
+      res.json(rows);
+    } catch (error) {
+      console.error('Error al obtener los informes:', error);
+      res.status(500).json({ error: 'Error al obtener los informes' });
+    }
+  });
+
 // Exportar la app para Vercel
 export default app;
 
