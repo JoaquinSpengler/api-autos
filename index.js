@@ -2,6 +2,7 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
+const jwt = require('jsonwebtoken');  // Asegúrate de haber instalado jsonwebtoken
 
 dotenv.config();
 
@@ -1356,7 +1357,7 @@ app.post('/api/rutas', async (req, res) => {
     }
 });
 
-// index.js
+
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -1372,13 +1373,22 @@ app.post('/api/login', async (req, res) => {
 
         const user = users[0];
 
-        // Verificar la contraseña
+        // Verificar la contraseña directamente (esto no es seguro)
         if (user.password !== password) {
             return res.status(400).json({ error: 'Contraseña incorrecta' });
         }
 
-        res.status(200).json({ message: 'Login exitoso', user });
+        // Generar un token JWT con la información del usuario
+        const payload = {
+            id: user.id_usuario,
+            email: user.email,
+            rol: user.rol
+        };
 
+        // Aquí usamos una clave secreta para firmar el token (debería estar en una variable de entorno)
+        const token = jwt.sign(payload, 'mi_clave_secreta', { expiresIn: '1h' });
+
+        res.status(200).json({ message: 'Login exitoso', token });
     } catch (error) {
         console.error("Error en la conexión a la base de datos o en el login:", error);
         res.status(500).json({ error: 'Error interno del servidor', message: error.message });
