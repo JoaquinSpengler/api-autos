@@ -1420,7 +1420,7 @@ app.post('/api/rutas', async (req, res) => {
 });
 
 // Endpoint para obtener todas las rutas
-app.get('/api/rutas', async (req, res) => {
+app.get('/api/ver-rutas', async (req, res) => {
     try {
         const db = await getConnection();
         const query = "SELECT * FROM Rutas";
