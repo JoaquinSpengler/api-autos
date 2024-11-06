@@ -1364,7 +1364,7 @@ app.post('/api/login', async (req, res) => {
         const connection = await mysql.createConnection(dbConfig);
         console.log("Conexión exitosa a la base de datos");
 
-        const [users] = await connection.execute('SELECT * FROM usuarios WHERE email = ?', [email]);
+        const [users] = await connection.execute('SELECT * FROM usuario WHERE email = ?', [email]);
 
         if (users.length === 0) {
             return res.status(400).json({ error: 'Usuario no encontrado' });
