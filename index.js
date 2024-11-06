@@ -33,6 +33,10 @@ async function getConnection() {
     return connection;
 }
 
+
+// ------------------------------------------- AUTO ENDPOINTS -----------------------------------
+
+
 // Endpoint para obtener todos los autos
 app.get('/api/obtener_autos', async (req, res) => {
     try {
@@ -127,7 +131,26 @@ app.get('/api/autos/nro_patente/:nro_patente', async (req, res) => {
     }
 });
 
-
+//endpoint para actualizar data de un auto por id
+router.put("/editar_auto/:id", async (req, res) => {
+    try {
+      const { id } = req.params; 
+      const autoData = req.body; 
+  
+      const auto = await Auto.findByPk(id);
+  
+      if (!auto) {
+        return res.status(404).json({ message: "El auto no se encontró en el sistema." });
+      }
+  
+      await auto.update(autoData);
+  
+      res.status(200).json({ message: "La información del auto se ha actualizado correctamente." });
+    } catch (error) {
+      console.error("Error al actualizar el auto:", error);
+      res.status(500).json({ message: "Error al actualizar la información del auto." });
+    }
+  });
 
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
