@@ -131,27 +131,29 @@ app.get('/api/autos/nro_patente/:nro_patente', async (req, res) => {
     }
 });
 
-//endpoint para actualizar data de un auto por id
-router.put("/api/editar_auto/:id", async (req, res) => {
-    try {
-      const { id } = req.params; 
-      const autoData = req.body; 
-  
-      const auto = await auto.findByPk(id);
-  
-      if (!auto) {
-        return res.status(404).json({ message: "El auto no se encontró en el sistema." });
-      }
-  
-      await auto.update(autoData);
-  
-      res.status(200).json({ message: "La información del auto se ha actualizado correctamente." });
-    } catch (error) {
-      console.error("Error al actualizar el auto:", error);
-      res.status(500).json({ message: "Error al actualizar la información del auto." });
-    }
-  });
+app.put('/api/editar_auto/:id', async (req, res) => {
+    const autoId = req.params.id;
+    const { marca, modelo, anio, kilometraje, nro_patente, flota_id } = req.body;
 
+    try {
+        const db = await getConnection();
+        const query = `
+            UPDATE autos 
+            SET marca = ?, modelo = ?, anio = ?, kilometraje = ?, nro_patente = ?, flota_id = ? 
+            WHERE id = ?
+        `;
+        const [result] = await db.query(query, [marca, modelo, anio, kilometraje, nro_patente, flota_id, autoId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Auto no encontrado' });
+        }
+
+        res.json({ id: autoId, marca, modelo, anio, kilometraje, nro_patente, flota_id });
+    } catch (err) {
+        console.error('Error al actualizar auto:', err);
+        res.status(500).json({ error: 'Error al actualizar auto' });
+    }
+});
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
 // Endpoint para obtener todos los mecánicos
