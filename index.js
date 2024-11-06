@@ -1137,7 +1137,7 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
 
 // Endpoint para crear un informe
 
-app.post('/informes/crear-informe-accidente', async (req, res) => {
+app.post('api/informes/crear-informe-accidente', async (req, res) => {
     const { descripcion, productosUtilizados, taller, mismaUbicacion } = req.body;
   
     console.log('Datos recibidos:', req.body); 
