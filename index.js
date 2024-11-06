@@ -122,14 +122,14 @@ app.get('/api/autos/patentes', async (req, res) => {
         }
 
         const [results] = await db.query(query, queryParams);
-        if (results.length === 0) {
-            return;}
-        res.json(results);
+        // Enviar una respuesta vacía si no hay resultados
+        res.json(results.length > 0 ? results : []);
     } catch (err) {
         console.error('Error al obtener patentes:', err);
         res.status(500).json({ error: 'Error al obtener patentes' });
     }
 });
+
 
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
