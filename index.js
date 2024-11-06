@@ -1162,6 +1162,36 @@ app.post('/api/informes/crear-informe', async (req, res) => {
     }
   });
 
+// Endpoint para registrar los productos utilizados por un mecanico al momento de ingresar el informe de accidente
+
+  app.post('/api/informes/:id/agregar-productos', async (req, res) => {
+    const informeId = req.params.id; 
+    const productosUtilizados = req.body;
+  
+    console.log('ID del informe:', informeId); 
+    console.log('Productos a agregar:', productosUtilizados);
+  
+    try {
+      const db = await getConnection();
+      await db.beginTransaction(); 
+  
+      for (const producto of productosUtilizados) {
+        console.log('Insertando producto:', producto);
+        await db.query(
+          'INSERT INTO informe_productos (id_informe, id_producto, cantidad) VALUES (?, ?, ?)',
+          [informeId, producto.producto, producto.cantidad]
+        );
+      }
+  
+      await db.commit(); 
+      res.status(201).json({ message: 'Productos agregados al informe correctamente' });
+    } catch (error) {
+      await db.rollback(); 
+      console.error('Error al agregar productos al informe:', error);
+      res.status(500).json({ error: 'Error al agregar productos al informe' });
+    }
+  });
+
 // Exportar la app para Vercel
 export default app;
 
