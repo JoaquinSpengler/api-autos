@@ -1238,24 +1238,128 @@ app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
       const [rows] = await db.query('SELECT * FROM informes WHERE misma_ubicacion = true');
       res.json(rows);
     } catch (error) {
-      console.error('Error al guardar el informe:', error);
+      console.error('Error al obtener los informes:', error);
+      res.status(500).json({ error: 'Error al obtener los informes' });
+    }
+  });
+
+// Endpoint para obtener los productos correspondientes a cada informe
+
+app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) => {
+    const idInforme = req.params.idInforme;
   
-      // Manejo de errores más específico (opcional)
-      if (error.code === 'ER_DUP_ENTRY') { 
-        // Ejemplo: error por clave duplicada
-        res.status(400).json({ error: 'Ya existe un informe con estos datos.' }); 
-      } else if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-        // Ejemplo: error por clave foránea inválida
-        res.status(400).json({ error: 'Uno o más productos no existen.' }); 
-      } else {
-        res.status(500).json({ error: 'Error al guardar el informe' });
-      }
+    try {
+      const db = await getConnection();
+      const [rows] = await db.query(
+        `SELECT p.nombre, p.marca, p.modelo, ip.cantidad
+        FROM informe_productos ip
+        JOIN productos p ON ip.id_producto = p.id_producto
+        WHERE ip.id_informe = ?`,
+        [idInforme]
+      );
+      res.json(rows);
+    } catch (error) {
+      console.error('Error al obtener los productos del informe:', error);
+      res.status(500).json({ error: 'Error al obtener los productos del informe' });
+    }
+  });
+
+  // Endpoint para confirmar un informe
+app.put('/api/informes/:id/confirmar', async (req, res) => {
+    const informeId = req.params.id;
+  
+    try {
+      const db = await getConnection();
+      await db.query(
+        'UPDATE informes SET aceptado = true WHERE id_informe = ?',
+        [informeId]
+      );
+      res.json({ message: 'Informe confirmado correctamente' });
+    } catch (error) {
+      console.error('Error al confirmar el informe:', error);
+      res.status(500).json({ error: 'Error al confirmar el informe' });
+    }
+  });
+  
+  // Endpoint para denegar un informe
+  app.put('/api/informes/:id/denegar', async (req, res) => {
+    const informeId = req.params.id;
+    const { motivo } = req.body; // Obtener el motivo del cuerpo de la solicitud
+  
+    try {
+      const db = await getConnection();
+      await db.query(
+        'UPDATE informes SET aceptado = false, motivo_rechazo = ? WHERE id_informe = ?',
+        [motivo, informeId]
+      );
+      res.json({ message: 'Informe denegado correctamente' });
+    } catch (error) {
+      console.error('Error al denegar el informe:', error);
+      res.status(500).json({ error: 'Error al denegar el informe' });
+    }
+  });
+
+//-----------------------------RUTAS-------------------------------
+
+// Endpoint para agregar una nueva ruta
+app.post('/api/rutas', async (req, res) => {
+    const {
+        conductor,
+        dni_conductor,
+        latitudA,
+        longitudA,
+        latitudB,
+        longitudB,
+        trazado,
+        estado,
+        distancia_total_km,
+        id_gerente
+    } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            INSERT INTO Rutas (conductor, dni_conductor, latitudA, longitudA, latitudB, longitudB, trazado, estado, distancia_total_km, id_gerente)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const [result] = await db.query(query, [
+            conductor,
+            dni_conductor,
+            latitudA,
+            longitudA,
+            latitudB,
+            longitudB,
+            JSON.stringify(trazado), // Convertir el trazado a JSON
+            estado || 'pendiente', // Valor por defecto 'pendiente' si no se proporciona
+            distancia_total_km,
+            id_gerente
+        ]);
+
+        res.json({
+            message: 'Ruta agregada exitosamente',
+            id_ruta: result.insertId,
+            conductor,
+            dni_conductor,
+            latitudA,
+            longitudA,
+            latitudB,
+            longitudB,
+            trazado,
+            estado,
+            distancia_total_km,
+            id_gerente
+        });
+    } catch (err) {
+        console.error('Error al agregar ruta:', err);
+        res.status(500).json({ error: 'Error al agregar ruta' });
     }
 });
 
-  async function loginUsuario(dni) {
+
+async function loginUsuario(dni) {
     try {
-        const response = await fetch(`https://api-autos.vercel.app/api/usuarios?dni=${dni}`);
+        const response = await fetch(`/api/usuarios?dni=${dni}`);
         const usuario = await response.json();
 
         if (!usuario.habilitado) {
@@ -1268,45 +1372,6 @@ app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
     }
 }
 
-async function crearUsuario(nombre, apellido, dni, rol) {
-    const usuario = { nombre, apellido, dni, rol, habilitado: true };
-
-    try {
-        const response = await fetch('https://api-autos.vercel.app/api/usuarios', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(usuario),
-        });
-
-        if (response.ok) {
-            console.log('Usuario creado con éxito.');
-        } else {
-            console.error('Error al crear el usuario.');
-        }
-    } catch (error) {
-        console.error('Error en la creación de usuario:', error);
-    }
-}
-
-async function cambiarEstadoUsuario(id_usuario, habilitado) {
-    try {
-        const response = await fetch(`https://api-autos.vercel.app/api/usuarios/${id_usuario}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ habilitado }),
-        });
-
-        if (response.ok) {
-            console.log(`Usuario ${habilitado ? 'habilitado' : 'deshabilitado'} correctamente.`);
-        } else {
-            console.error('Error al cambiar el estado del usuario.');
-        }
-    } catch (error) {
-        console.error('Error en la actualización de estado:', error);
-    }
-}
-
 
 // Exportar la app para Vercel
 export default app;
-
