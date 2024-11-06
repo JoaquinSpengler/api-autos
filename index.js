@@ -106,6 +106,29 @@ app.post('/api/autos', async (req, res) => {
     }
 });
 
+// Endpoint para puscar un auto por patente
+
+app.get('/api/autos/nro_patente/:nro_patente', async (req, res) => {
+    const { nro_patente } = req.params;
+    try {
+        const db = await getConnection();
+        const query = 'SELECT * FROM autos WHERE nro_patente = ?';
+        const [results] = await db.query(query, [nro_patente]);
+
+        if (results.length > 0) {
+            const auto = results[0]; // Renombrado a 'auto' para coherencia
+            res.json(auto); // Devuelve el auto encontrado
+        } else {
+            res.json(null); // Devuelve null si no se encuentra el auto
+        }
+    } catch (err) {
+        console.error('Error al buscar el auto por patente:', err);
+        res.status(500).json({ error: 'Error al buscar el auto' });
+    }
+});
+
+
+
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
 // Endpoint para obtener todos los mecánicos
@@ -384,25 +407,46 @@ app.post('/api/proveedores', async (req, res) => {
     }
 });
 
-// Endpoint para pasar un proveedor a estado inactivo
+//Endpoint para buscar un proveedor por cuit
+app.get('/api/proveedores/cuil/:cuil', async (req, res) => {
+    const { cuil } = req.params;
+    try {
+        const db = await getConnection();
+        const query = 'SELECT * FROM proveedores WHERE cuil = ?';
+        const [results] = await db.query(query, [cuil]);
+
+        if (results.length > 0) {
+            const proveedor = results[0];
+            res.json(proveedor); // Devuelve el proveedor encontrado
+        } else {
+            res.json(null); // Devuelve null si no se encuentra el proveedor
+        }
+    } catch (err) {
+        console.error('Error al buscar el proveedor por CUIT:', err);
+        res.status(500).json({ error: 'Error al buscar el proveedor' });
+    }
+});
+
+//Endpoint para dar de baja un proveedor
 app.put('/api/proveedores/:id/inactivo', async (req, res) => {
     const proveedorId = req.params.id;
+    const { razon_baja } = req.body; 
 
     try {
         const db = await getConnection();
-        const query = 'UPDATE proveedores SET activo = false WHERE id_proveedor = ?';
-        const [result] = await db.query(query, [proveedorId]);
-
+        const query = 'UPDATE proveedores SET activo = false, razon_baja = ? WHERE id_proveedor = ?';
+        const [result] = await db.query(query, [razon_baja, proveedorId]); 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Proveedor no encontrado' });
         }
 
-        res.json({ message: 'Proveedor pasado a estado inactivo' });
+        res.json({ message: 'Proveedor pasado a estado inactivo y motivo de baja guardado' });
     } catch (err) {
         console.error('Error al pasar proveedor a estado inactivo:', err);
         res.status(500).json({ error: 'Error al pasar proveedor a estado inactivo' });
     }
 });
+
 
 
 // ----------------------------------- PRODUCTO ENDPOINTS -----------------------------------
@@ -1135,37 +1179,64 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
 
 // ----------------------------------- ENDPOINTS INFORMES DE ACCIDENTES -----------------------------
 
-// Endpoint para crear un informe
+// Endpoint para crear el informe
 
-app.post('/informes/crear-informe-accidente', async (req, res) => {
-    const { descripcion, productosUtilizados, taller, mismaUbicacion } = req.body;
+app.post('/api/informes/crear-informe', async (req, res) => {
+    const { descripcion, taller, mismaUbicacion } = req.body;
   
-    console.log('Datos recibidos:', req.body); // Imprimir los datos recibidos
+    console.log('Datos recibidos para crear informe:', req.body); 
   
     try {
-        console.log("Datos que se enviarán a la base de datos:", { 
-            descripcion, 
-            taller, 
-            mismaUbicacion 
-          });
-      // Guardar el informe en la tabla "informes"
-      const result = await db.query(
+      const db = await getConnection();
+  
+      // Insertar el informe en la tabla "informes"
+      const [result] = await db.query(
         'INSERT INTO informes (descripcion, taller, misma_ubicacion) VALUES (?, ?, ?)',
         [descripcion, taller, mismaUbicacion]
       );
   
       const informeId = result.insertId;
   
-      // Guardar los productos utilizados en la tabla "informe_productos"
-      for (const producto of productosUtilizados) {
-        console.log('Insertando producto:', producto); // Imprimir cada producto que se inserta
-        await db.query(
-          'INSERT INTO informe_productos (id_informe, id_producto, cantidad) VALUES (?, ?, ?)',
-          [informeId, producto.producto, producto.cantidad]
-        );
-      }
+      res.status(201).json({ 
+        message: 'Informe creado correctamente', 
+        id_informe: informeId 
+      });
+    } catch (error) {
+      console.error('Error al crear el informe:', error);
+      res.status(500).json({ error: 'Error al crear el informe' });
+    }
+  });
+
+// Endpoint para agregar productos del informe
+
+app.post('/api/informes/:id/agregar-producto', async (req, res) => {
+    const informeId = req.params.id;
+    const { id_producto, cantidad } = req.body;
   
-      res.status(201).json({ message: 'Informe guardado correctamente' });
+    console.log('Datos recibidos para agregar producto:', req.body); 
+  
+    try {
+      const db = await getConnection();
+  
+      await db.query(
+        'INSERT INTO informe_productos (id_informe, id_producto, cantidad) VALUES (?, ?, ?)',
+        [informeId, id_producto, cantidad]
+      );
+  
+      res.status(201).json({ message: 'Producto agregado al informe correctamente' });
+    } catch (error) {
+      console.error('Error al agregar producto al informe:', error);
+      res.status(500).json({ error: 'Error al agregar producto al informe' });
+    }
+  });
+
+// Endpoint para obtener los informes con misma ubicacion = true
+
+app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
+    try {
+      const db = await getConnection();
+      const [rows] = await db.query('SELECT * FROM informes WHERE misma_ubicacion = true');
+      res.json(rows);
     } catch (error) {
       console.error('Error al guardar el informe:', error);
   
@@ -1180,8 +1251,8 @@ app.post('/informes/crear-informe-accidente', async (req, res) => {
         res.status(500).json({ error: 'Error al guardar el informe' });
       }
     }
-  });
-  
+});
+
   async function loginUsuario(dni) {
     try {
         const response = await fetch(`https://api-autos.vercel.app/api/usuarios?dni=${dni}`);
