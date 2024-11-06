@@ -1243,6 +1243,19 @@ app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
     }
   });
 
+// Endpoint para obtener los informes con taller = true
+
+  app.get('/api/informes/obtener-informes-taller', async (req, res) => {
+    try {
+      const db = await getConnection(); 
+      const [rows] = await db.query('SELECT * FROM informes WHERE taller = true');
+      res.json(rows); 
+    } catch (error) {
+      console.error('Error al obtener los informes:', error);
+      res.status(500).json({ error: 'Error al obtener los informes' });
+    }
+  });
+
 // Endpoint para obtener los productos correspondientes a cada informe
 
 app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) => {
