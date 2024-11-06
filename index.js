@@ -1444,6 +1444,47 @@ app.get('/api/ver-rutas', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener rutas' });
     }
 });
+// Endpoint para aprobar una ruta
+app.post('/aprobar-ruta', async (req, res) => {
+    try {
+        const { id_ruta } = req.body;
+        const db = await getConnection();
+        
+        // Actualiza el estado y la fecha de aprobación
+        const query = `
+            UPDATE Rutas 
+            SET estado = 'aprobada', fecha_aprobacion = NOW() 
+            WHERE id_ruta = ?;
+        `;
+        await db.query(query, [id_ruta]);
+        
+        res.json({ message: 'Ruta aprobada exitosamente' });
+    } catch (err) {
+        console.error('Error al aprobar ruta:', err);
+        res.status(500).json({ error: 'Error al aprobar ruta' });
+    }
+});
+
+// Endpoint para rechazar una ruta
+app.post('/rechazar-ruta', async (req, res) => {
+    try {
+        const { id_ruta } = req.body;
+        const db = await getConnection();
+        
+        // Actualiza el estado y la fecha de rechazo
+        const query = `
+            UPDATE Rutas 
+            SET estado = 'rechazada', fecha_rechazo = NOW() 
+            WHERE id_ruta = ?;
+        `;
+        await db.query(query, [id_ruta]);
+        
+        res.json({ message: 'Ruta rechazada exitosamente' });
+    } catch (err) {
+        console.error('Error al rechazar ruta:', err);
+        res.status(500).json({ error: 'Error al rechazar ruta' });
+    }
+});
 
 
 
