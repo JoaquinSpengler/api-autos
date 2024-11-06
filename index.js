@@ -34,7 +34,7 @@ async function getConnection() {
 }
 
 // Endpoint para obtener todos los autos
-app.get('/api/autos', async (req, res) => {
+app.get('/api/obtener_autos', async (req, res) => {
     try {
         const db = await getConnection();
         const [results] = await db.query('SELECT * FROM autos');
