@@ -1182,6 +1182,59 @@ app.post('/informes/crear-informe-accidente', async (req, res) => {
     }
   });
   
+  async function loginUsuario(dni) {
+    try {
+        const response = await fetch(`https://api-autos.vercel.app/api/usuarios?dni=${dni}`);
+        const usuario = await response.json();
+
+        if (!usuario.habilitado) {
+            console.log('Usuario inhabilitado. Contacta al administrador.');
+            return;
+        }
+        console.log(`Bienvenido, ${usuario.nombre} ${usuario.apellido}. Rol: ${usuario.rol}`);
+    } catch (error) {
+        console.error('Error en el inicio de sesión:', error);
+    }
+}
+
+async function crearUsuario(nombre, apellido, dni, rol) {
+    const usuario = { nombre, apellido, dni, rol, habilitado: true };
+
+    try {
+        const response = await fetch('https://api-autos.vercel.app/api/usuarios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(usuario),
+        });
+
+        if (response.ok) {
+            console.log('Usuario creado con éxito.');
+        } else {
+            console.error('Error al crear el usuario.');
+        }
+    } catch (error) {
+        console.error('Error en la creación de usuario:', error);
+    }
+}
+
+async function cambiarEstadoUsuario(id_usuario, habilitado) {
+    try {
+        const response = await fetch(`https://api-autos.vercel.app/api/usuarios/${id_usuario}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ habilitado }),
+        });
+
+        if (response.ok) {
+            console.log(`Usuario ${habilitado ? 'habilitado' : 'deshabilitado'} correctamente.`);
+        } else {
+            console.error('Error al cambiar el estado del usuario.');
+        }
+    } catch (error) {
+        console.error('Error en la actualización de estado:', error);
+    }
+}
+
 
 // Exportar la app para Vercel
 export default app;
