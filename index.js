@@ -122,6 +122,8 @@ app.get('/api/autos/patentes', async (req, res) => {
         }
 
         const [results] = await db.query(query, queryParams);
+        if (results.length === 0) {
+            return;}
         res.json(results);
     } catch (err) {
         console.error('Error al obtener patentes:', err);
