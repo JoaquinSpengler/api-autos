@@ -1445,7 +1445,7 @@ app.get('/api/ver-rutas', async (req, res) => {
     }
 });
 // Endpoint para aprobar una ruta
-app.post('/aprobar-ruta', async (req, res) => {
+app.post('api/aprobar-ruta', async (req, res) => {
     try {
         const { id_ruta } = req.body;
         const db = await getConnection();
@@ -1466,7 +1466,7 @@ app.post('/aprobar-ruta', async (req, res) => {
 });
 
 // Endpoint para rechazar una ruta
-app.post('/rechazar-ruta', async (req, res) => {
+app.post('api/rechazar-ruta', async (req, res) => {
     try {
         const { id_ruta } = req.body;
         const db = await getConnection();
