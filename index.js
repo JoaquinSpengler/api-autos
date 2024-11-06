@@ -2,8 +2,9 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+
 
 
 dotenv.config();
