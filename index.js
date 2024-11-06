@@ -12,6 +12,7 @@ app.use(cors({
     origin: ['localhost:5173','http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5175', 'http://localhost:5180',"https://radiador-spring-tp.vercel.app"], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
+    credentials: true 
 }));
 
 
@@ -1484,7 +1485,7 @@ app.get('/api/ver-rutas', async (req, res) => {
     }
 });
 // Endpoint para aprobar una ruta
-app.post('api/aprobar-ruta', async (req, res) => {
+app.post('/api/aprobar-ruta', async (req, res) => {
     try {
         const { id_ruta } = req.body;
         const db = await getConnection();
@@ -1505,7 +1506,7 @@ app.post('api/aprobar-ruta', async (req, res) => {
 });
 
 // Endpoint para rechazar una ruta
-app.post('api/rechazar-ruta', async (req, res) => {
+app.post('/api/rechazar-ruta', async (req, res) => {
     try {
         const { id_ruta } = req.body;
         const db = await getConnection();
@@ -1583,7 +1584,7 @@ app.get('/api/check-session', async (req, res) => {
         }
 
         const session = sessions[0];
-        const [user] = await connection.execute('SELECT * FROM usuario WHERE id = ?', [session.user_id]);
+        const [user] = await connection.execute('SELECT * FROM usuario WHERE id_usuario = ?', [session.user_id]);
 
         if (user.length === 0) {
             return res.status(401).json({ authenticated: false });
