@@ -1286,14 +1286,13 @@ app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
   });
 
 // Endpoint para obtener los productos correspondientes a cada informe
-
 app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) => {
     const idInforme = req.params.idInforme;
   
     try {
       const db = await getConnection();
       const [rows] = await db.query(
-        `SELECT *
+        `SELECT p.nombre, p.marca, p.modelo, ip.cantidad AS cantidad_utilizada  -- Cambia aquí
         FROM informe_productos ip
         JOIN productos p ON ip.id_producto = p.id_producto
         WHERE ip.id_informe = ?`,
@@ -1305,7 +1304,6 @@ app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) =
       res.status(500).json({ error: 'Error al obtener los productos del informe' });
     }
   });
-
   // Endpoint para confirmar un informe
 app.put('/api/informes/:id/confirmar', async (req, res) => {
     const informeId = req.params.id;
