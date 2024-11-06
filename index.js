@@ -137,7 +137,7 @@ router.put("/api/editar_auto/:id", async (req, res) => {
       const { id } = req.params; 
       const autoData = req.body; 
   
-      const auto = await Auto.findByPk(id);
+      const auto = await auto.findByPk(id);
   
       if (!auto) {
         return res.status(404).json({ message: "El auto no se encontró en el sistema." });
