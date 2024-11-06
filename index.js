@@ -603,6 +603,25 @@ app.get('/api/productos/productos-por-proovedor/:proveedorId', async (req, res) 
     }
 });
 
+// Endpoint para restar una cantidad de productos del stock
+
+app.put('/api/productos/:id/restar-cantidad', async (req, res) => {
+    const productoId = req.params.id;
+    const { cantidad } = req.body;
+  
+    try {
+      const db = await getConnection();
+      await db.query(
+        'UPDATE productos SET cantidad = cantidad - ? WHERE id_producto = ?',
+        [cantidad, productoId]
+      );
+      res.json({ message: 'Cantidad del producto actualizada correctamente' });
+    } catch (err) {
+      console.error('Error al actualizar la cantidad del producto:', err);
+      res.status(500).json({ error: 'Error al actualizar la cantidad del producto' });
+    }
+  });
+
 
 // ----------------------------------- FLOTA ENDPOINTS -----------------------------------
 
