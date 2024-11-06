@@ -1135,16 +1135,15 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
 
 // ----------------------------------- ENDPOINTS INFORMES DE ACCIDENTES -----------------------------
 
-// Endpoint para crear un informe
+// Endpoint para crear el informe
 
-app.post('api/informes/crear-informe-accidente', async (req, res) => {
-    const { descripcion, productosUtilizados, taller, mismaUbicacion } = req.body;
+app.post('/api/informes/crear-informe', async (req, res) => {
+    const { descripcion, taller, mismaUbicacion } = req.body;
   
-    console.log('Datos recibidos:', req.body); 
+    console.log('Datos recibidos para crear informe:', req.body); 
   
     try {
       const db = await getConnection();
-      await db.beginTransaction(); // Iniciar una transacción
   
       // Insertar el informe en la tabla "informes"
       const [result] = await db.query(
@@ -1154,24 +1153,38 @@ app.post('api/informes/crear-informe-accidente', async (req, res) => {
   
       const informeId = result.insertId;
   
-      // Insertar los productos utilizados en la tabla "informe_productos"
-      for (const producto of productosUtilizados) {
-        console.log('Insertando producto:', producto); 
-        await db.query(
-          'INSERT INTO informe_productos (id_informe, id_producto) VALUES (?, ?, ?)',
-          [informeId, producto.producto, producto.cantidad]
-        );
-      }
-  
-      await db.commit(); // Confirmar la transacción
-      res.status(201).json({ message: 'Informe guardado correctamente' });
+      res.status(201).json({ 
+        message: 'Informe creado correctamente', 
+        id_informe: informeId 
+      });
     } catch (error) {
-      await db.rollback(); // Revertir la transacción en caso de error
-      console.error('Error al guardar el informe:', error);
-      res.status(500).json({ error: 'Error al guardar el informe' });
+      console.error('Error al crear el informe:', error);
+      res.status(500).json({ error: 'Error al crear el informe' });
     }
   });
+
+// Endpoint para agregar productos del informe
+
+app.post('/api/informes/:id/agregar-producto', async (req, res) => {
+    const informeId = req.params.id;
+    const { id_producto, cantidad } = req.body;
   
+    console.log('Datos recibidos para agregar producto:', req.body); 
+  
+    try {
+      const db = await getConnection();
+  
+      await db.query(
+        'INSERT INTO informe_productos (id_informe, id_producto, cantidad) VALUES (?, ?, ?)',
+        [informeId, id_producto, cantidad]
+      );
+  
+      res.status(201).json({ message: 'Producto agregado al informe correctamente' });
+    } catch (error) {
+      console.error('Error al agregar producto al informe:', error);
+      res.status(500).json({ error: 'Error al agregar producto al informe' });
+    }
+  });
 
 // Exportar la app para Vercel
 export default app;
