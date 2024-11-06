@@ -1356,31 +1356,35 @@ app.post('/api/rutas', async (req, res) => {
     }
 });
 
-// Endpoint de login (sin JWT ni bcrypt)
+// index.js
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
         const connection = await mysql.createConnection(dbConfig);
+        console.log("Conexión exitosa a la base de datos");
+
         const [users] = await connection.execute('SELECT * FROM usuarios WHERE email = ?', [email]);
-        
+
         if (users.length === 0) {
             return res.status(400).json({ error: 'Usuario no encontrado' });
         }
 
         const user = users[0];
-        
-        // Verificar la contraseña de forma directa (sin bcrypt)
+
+        // Verificar la contraseña
         if (user.password !== password) {
             return res.status(400).json({ error: 'Contraseña incorrecta' });
         }
 
         res.status(200).json({ message: 'Login exitoso', user });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        console.error("Error en la conexión a la base de datos o en el login:", error);
+        res.status(500).json({ error: 'Error interno del servidor', message: error.message });
     }
 });
+
   
 // Exportar la app para Vercel
 export default app;
