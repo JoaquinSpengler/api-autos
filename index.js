@@ -1132,6 +1132,39 @@ app.put('/api/solicitudes/resolver', async (req, res) => {
     }
 });
 
+
+// ----------------------------------- ENDPOINTS INFORMES DE ACCIDENTES -----------------------------
+
+// Endpoint para crear un informe
+
+app.post('/informes/crear-informe-accidente', async (req, res) => {
+    const { descripcion, productosUtilizados, taller, mismaUbicacion } = req.body;
+  
+    try {
+      // Guardar el informe en la tabla "informes"
+      const result = await db.query(
+        'INSERT INTO informes (descripcion, taller, misma_ubicacion) VALUES (?, ?, ?)',
+        [descripcion, taller, mismaUbicacion]
+      );
+  
+      const informeId = result.insertId;
+  
+      // Guardar los productos utilizados en la tabla "informe_productos"
+      for (const producto of productosUtilizados) {
+        await db.query(
+          'INSERT INTO informe_productos (id_informe, id_producto, cantidad) VALUES (?, ?, ?)',
+          [informeId, producto.producto, producto.cantidad]
+        );
+      }
+  
+      res.status(201).json({ message: 'Informe guardado correctamente' });
+    } catch (error) {
+      console.error('Error al guardar el informe:', error);
+      res.status(500).json({ error: 'Error al guardar el informe' });
+    }
+  });
+  
+
 // Exportar la app para Vercel
 export default app;
 
