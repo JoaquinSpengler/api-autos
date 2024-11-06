@@ -409,6 +409,26 @@ app.post('/api/proveedores', async (req, res) => {
     }
 });
 
+//Endpoint para buscar un proveedor por cuit
+app.get('/api/proveedores/cuil/:cuil', async (req, res) => {
+    const { cuil } = req.params;
+    try {
+        const db = await getConnection();
+        const query = 'SELECT * FROM proveedores WHERE cuil = ?';
+        const [results] = await db.query(query, [cuil]);
+
+        if (results.length > 0) {
+            const proveedor = results[0];
+            res.json(proveedor); // Devuelve el proveedor encontrado
+        } else {
+            res.json(null); // Devuelve null si no se encuentra el proveedor
+        }
+    } catch (err) {
+        console.error('Error al buscar el proveedor por CUIT:', err);
+        res.status(500).json({ error: 'Error al buscar el proveedor' });
+    }
+});
+
 // Endpoint para pasar un proveedor a estado inactivo
 app.put('/api/proveedores/:id/inactivo', async (req, res) => {
     const proveedorId = req.params.id;
