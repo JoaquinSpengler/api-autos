@@ -427,25 +427,26 @@ app.get('/api/proveedores/cuil/:cuil', async (req, res) => {
     }
 });
 
-// Endpoint para pasar un proveedor a estado inactivo
+//Endpoint para dar de baja un proveedor
 app.put('/api/proveedores/:id/inactivo', async (req, res) => {
     const proveedorId = req.params.id;
+    const { razon_baja } = req.body; 
 
     try {
         const db = await getConnection();
-        const query = 'UPDATE proveedores SET activo = false WHERE id_proveedor = ?';
-        const [result] = await db.query(query, [proveedorId]);
-
+        const query = 'UPDATE proveedores SET activo = false, razon_baja = ? WHERE id_proveedor = ?';
+        const [result] = await db.query(query, [razon_baja, proveedorId]); 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Proveedor no encontrado' });
         }
 
-        res.json({ message: 'Proveedor pasado a estado inactivo' });
+        res.json({ message: 'Proveedor pasado a estado inactivo y motivo de baja guardado' });
     } catch (err) {
         console.error('Error al pasar proveedor a estado inactivo:', err);
         res.status(500).json({ error: 'Error al pasar proveedor a estado inactivo' });
     }
 });
+
 
 
 // ----------------------------------- PRODUCTO ENDPOINTS -----------------------------------
