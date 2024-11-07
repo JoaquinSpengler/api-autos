@@ -1381,10 +1381,17 @@ app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) =
     try {
         const db = await getConnection();
         const [rows] = await db.query(
-            `SELECT p.nombre, p.marca, p.modelo, ip.cantidad AS cantidad_utilizada, c.proveedor_id 
+            `SELECT 
+                p.nombre, 
+                p.marca, 
+                p.modelo, 
+                ip.cantidad AS cantidad_utilizada, 
+                c.proveedor_id,
+                p.cantidad,                -- Agregar cantidad
+                p.cantidad_minima        -- Agregar cantidad_minima
             FROM informe_productos ip
             JOIN productos p ON ip.id_producto = p.id_producto
-            JOIN categorias c ON p.categoria = c.id  -- JOIN con la tabla categorias
+            JOIN categorias c ON p.categoria = c.id
             WHERE ip.id_informe = ?`,
             [idInforme]
         );
