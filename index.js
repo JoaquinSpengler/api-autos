@@ -1121,7 +1121,8 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         console.log('Petición recibida para generar orden de compra:', req.body);
 
         const db = await getConnection();
-        const { id_proveedor, id_producto, cantidad, cantidad_minima } = req.body;
+        const { id_proveedor, id_producto, cantidad_minima } = req.body; // Recibir solo cantidad_minima
+        const cantidad = cantidad_minima; // Asignar cantidad_minima a cantidad
 
         console.log('Datos del proveedor y producto:', { id_proveedor, id_producto, cantidad, cantidad_minima }); 
 
@@ -1139,16 +1140,16 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
             'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, ?, ?)',
             [id_proveedor, 'creada', numeroOrden] 
         );
-        const id_orden_de_compra = result.insertId; // Corrección: usar id_orden_de_compra
+        const id_orden_de_compra = result.insertId;
 
         console.log('Orden de compra insertada con ID:', id_orden_de_compra);
 
         console.log('Insertando producto en la orden de compra...');
 
-        // Agregar el producto a la orden de compra con cantidad_minima * 2
+        // Agregar el producto a la orden de compra con cantidad_minima
         await db.query(
             'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-            [id_orden_de_compra, id_producto, cantidad_minima] // Corrección: usar id_orden_de_compra
+            [id_orden_de_compra, id_producto, cantidad] // Usar la variable cantidad
         );
 
         console.log('Producto insertado en la orden de compra');
