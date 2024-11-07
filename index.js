@@ -155,6 +155,32 @@ app.put('/api/editar_auto/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar auto' });
     }
 });
+
+app.delete("/api/autos/eliminar_auto/:nro_patente", (req, res) => {
+    const { nro_patente } = req.params; // Obtener el nro_patente desde los parámetros de la URL
+    console.log("nro_patente recibido:", nro_patente);
+    
+    if (!nro_patente) {
+      return res.status(400).json({ error: "Se debe proporcionar el número de patente." });
+    }
+  
+    // Consulta para eliminar el auto de la base de datos
+    const query = "DELETE FROM autos WHERE nro_patente = ?";
+  
+    db.query(query, [nro_patente], (err, result) => {
+      if (err) {
+        console.error("Error al eliminar el auto:", err);
+        return res.status(500).json({ error: "Hubo un error al eliminar el auto." });
+      }
+  
+      // Verifica si se eliminó algún registro
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "El auto no fue encontrado." });
+      }
+  
+      res.status(200).json({ message: "Auto eliminado exitosamente." });
+    });
+  });
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
 // Endpoint para obtener todos los mecánicos
