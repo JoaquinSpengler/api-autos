@@ -1121,9 +1121,9 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         console.log('Petición recibida para generar orden de compra:', req.body);
 
         const db = await getConnection();
-        const { id_proveedor, id_producto, cantidad } = req.body; // Recibir id_producto y cantidad
+        const { id_proveedor, id_producto, cantidad, cantidad_minima } = req.body;
 
-        console.log('Datos del proveedor y producto:', { id_proveedor, id_producto, cantidad }); 
+        console.log('Datos del proveedor y producto:', { id_proveedor, id_producto, cantidad, cantidad_minima }); 
 
         // Generar número de orden único
         let numeroOrden;
@@ -1145,10 +1145,10 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
 
         console.log('Insertando producto en la orden de compra...');
 
-        // Agregar el producto a la orden de compra
+        // Agregar el producto a la orden de compra con cantidad_minima * 2
         await db.query(
             'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-            [idOrdenDeCompra, id_producto, cantidad]
+            [idOrdenDeCompra, id_producto, cantidad_minima * 2]
         );
 
         console.log('Producto insertado en la orden de compra');
