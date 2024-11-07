@@ -1121,7 +1121,7 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         console.log('Petición recibida para generar orden de compra:', req.body); // Log de la petición recibida
 
         const db = await getConnection();
-        const { proveedor_id } = req.body; // Solo se necesita el id_proveedor
+        const { id_proveedor } = req.body; // Solo se necesita el id_proveedor
 
         console.log('Datos del proveedor:', { id_proveedor }); // Log de los datos del proveedor
 
@@ -1137,7 +1137,7 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         // Crear una nueva orden de compra con el número de orden generado
         const [result] = await db.query(
             'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, ?, ?)', // Modificación aquí
-            [req.body.proveedor_id, 'creada', numeroOrden]  // Modificación aquí
+            [id_proveedor, 'creada', numeroOrden]  // Modificación aquí
         );
         const idOrdenDeCompra = result.insertId;
 
