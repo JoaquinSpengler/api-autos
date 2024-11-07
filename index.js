@@ -1139,16 +1139,16 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
             'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, ?, ?)',
             [id_proveedor, 'creada', numeroOrden] 
         );
-        const id_orden_de_compra = result.insertId;
+        const id_orden_de_compra = result.insertId; // Corrección: usar id_orden_de_compra
 
-        console.log('Orden de compra insertada con ID:', idOrdenDeCompra);
+        console.log('Orden de compra insertada con ID:', id_orden_de_compra);
 
         console.log('Insertando producto en la orden de compra...');
 
         // Agregar el producto a la orden de compra con cantidad_minima * 2
         await db.query(
             'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-            [id_orden_de_compra, id_producto, cantidad_minima * 2] // Cambiar idOrdenDeCompra por id_orden_de_compra
+            [id_orden_de_compra, id_producto, cantidad_minima * 2] // Corrección: usar id_orden_de_compra
         );
 
         console.log('Producto insertado en la orden de compra');
