@@ -1121,66 +1121,40 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         console.log('Petición recibida para generar orden de compra:', req.body);
 
         const db = await getConnection();
-        const { id_proveedor, id_producto, cantidad_minima } = req.body;
-        const cantidad = cantidad_minima; 
+        const { id_proveedor, id_producto, cantidad_minima } = req.body; // Recibir solo cantidad_minima
+        const cantidad = cantidad_minima; // Asignar cantidad_minima a cantidad
 
         console.log('Datos del proveedor y producto:', { id_proveedor, id_producto, cantidad, cantidad_minima }); 
 
-        // Buscar una orden de compra existente en estado 'creada' para el proveedor
-        const [ordenesExistentes] = await db.query(
-            'SELECT id_orden_de_compra FROM ordenes_de_compra WHERE id_proveedor = ? AND estado = "creada"',
-            [id_proveedor]
+        // Generar número de orden único
+        let numeroOrden;
+        do {
+            numeroOrden = generarNumeroOrden();
+            console.log('Número de orden generado:', numeroOrden);
+        } while (await existeNumeroOrden(db, numeroOrden));
+
+        console.log('Insertando orden de compra en la base de datos...');
+
+        // Crear una nueva orden de compra
+        const [result] = await db.query(
+            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, ?, ?)',
+            [id_proveedor, 'creada', numeroOrden] 
+        );
+        const id_orden_de_compra = result.insertId;
+
+        console.log('Orden de compra insertada con ID:', id_orden_de_compra);
+
+        console.log('Insertando producto en la orden de compra...');
+
+        // Agregar el producto a la orden de compra con cantidad_minima
+        await db.query(
+            'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
+            [id_orden_de_compra, id_producto, cantidad * 2] // Usar la variable cantidad
         );
 
-        if (ordenesExistentes.length > 0) {
-            const id_orden_de_compra = ordenesExistentes[0].id_orden_de_compra;
-            console.log('Orden de compra existente con ID:', id_orden_de_compra);
+        console.log('Producto insertado en la orden de compra');
 
-            console.log('Insertando producto en la orden de compra existente...');
-
-            // Agregar el producto a la orden de compra existente
-            await db.query(
-                'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-                [id_orden_de_compra, id_producto, cantidad * 2]
-            );
-
-            console.log('Producto insertado en la orden de compra existente');
-
-            res.status(200).json({ message: 'Producto agregado a la orden de compra existente' });
-        } else {
-            // Si no existe una orden de compra en estado 'creada', crear una nueva
-            console.log('No se encontró una orden de compra existente. Creando una nueva...');
-
-            // Generar número de orden único
-            let numeroOrden;
-            do {
-                numeroOrden = generarNumeroOrden();
-                console.log('Número de orden generado:', numeroOrden);
-            } while (await existeNumeroOrden(db, numeroOrden));
-
-            console.log('Insertando nueva orden de compra en la base de datos...');
-
-            // Crear una nueva orden de compra
-            const [result] = await db.query(
-                'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, ?, ?)',
-                [id_proveedor, 'creada', numeroOrden] 
-            );
-            const id_orden_de_compra = result.insertId;
-
-            console.log('Nueva orden de compra insertada con ID:', id_orden_de_compra);
-
-            console.log('Insertando producto en la nueva orden de compra...');
-
-            // Agregar el producto a la nueva orden de compra
-            await db.query(
-                'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-                [id_orden_de_compra, id_producto, cantidad * 2]
-            );
-
-            console.log('Producto insertado en la nueva orden de compra');
-
-            res.status(201).json({ message: 'Orden de compra generada correctamente' });
-        }
+        res.status(201).json({ message: 'Orden de compra generada correctamente' });
     } catch (error) {
         console.error('Error al generar la orden de compra:', error); 
         res.status(500).json({ error: 'Error al generar la orden de compra' });
