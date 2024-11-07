@@ -1136,8 +1136,8 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
 
         // Crear una nueva orden de compra con el número de orden generado
         const [result] = await db.query(
-            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, "creada", ?)',
-            [id_proveedor, numeroOrden] 
+            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, ?, ?)', // Modificación aquí
+            [id_proveedor, 'creada', numeroOrden]  // Modificación aquí
         );
         const idOrdenDeCompra = result.insertId;
 
