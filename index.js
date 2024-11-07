@@ -1149,7 +1149,7 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         // Agregar el producto a la orden de compra con cantidad_minima
         await db.query(
             'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-            [id_orden_de_compra, id_producto, cantidad] // Usar la variable cantidad
+            [id_orden_de_compra, id_producto, cantidad * 2] // Usar la variable cantidad
         );
 
         console.log('Producto insertado en la orden de compra');
