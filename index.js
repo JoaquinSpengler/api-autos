@@ -1379,22 +1379,24 @@ app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
 // Endpoint para obtener los productos correspondientes a cada informe
 app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) => {
     const idInforme = req.params.idInforme;
-  
+
     try {
-      const db = await getConnection();
-      const [rows] = await db.query(
-        `SELECT p.nombre, p.marca, p.modelo, ip.cantidad AS cantidad_utilizada  -- Cambia aquí
-        FROM informe_productos ip
-        JOIN productos p ON ip.id_producto = p.id_producto
-        WHERE ip.id_informe = ?`,
-        [idInforme]
-      );
-      res.json(rows);
+        const db = await getConnection();
+        const [rows] = await db.query(
+            `SELECT p.nombre, p.marca, p.modelo, ip.cantidad AS cantidad_utilizada, c.proveedor_id 
+            FROM informe_productos ip
+            JOIN productos p ON ip.id_producto = p.id_producto
+            JOIN categorias c ON p.categoria = c.id  -- JOIN con la tabla categorias
+            WHERE ip.id_informe = ?`,
+            [idInforme]
+        );
+        res.json(rows);
     } catch (error) {
-      console.error('Error al obtener los productos del informe:', error);
-      res.status(500).json({ error: 'Error al obtener los productos del informe' });
+        console.error('Error al obtener los productos del informe:', error);
+        res.status(500).json({ error: 'Error al obtener los productos del informe' });
     }
-  });
+});
+
   // Endpoint para confirmar un informe
 app.put('/api/informes/:id/confirmar', async (req, res) => {
     const informeId = req.params.id;
