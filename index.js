@@ -1113,24 +1113,6 @@ app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
     }
 });
 
-// Función para generar un número de orden aleatorio
-function generarNumeroOrden() {
-    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let numero = '#';
-    for (let i = 0; i < 2; i++) {
-        numero += letras.charAt(Math.floor(Math.random() * letras.length));
-    }
-    for (let i = 0; i < 4; i++) {
-        numero += Math.floor(Math.random() * 10);
-    }
-    return numero;
-}
-
-// Función para verificar si el número de orden ya existe
-async function existeNumeroOrden(db, numeroOrden) {
-    const [rows] = await db.query('SELECT 1 FROM ordenes_de_compra WHERE numero_orden = ?', [numeroOrden]);
-    return rows.length > 0;
-}
 
 // Endpoint para generar ordenes de compra automaticas
 
@@ -1167,6 +1149,26 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         res.status(500).json({ error: 'Error al generar la orden de compra' });
     }
 });
+
+// Función para generar un número de orden aleatorio
+function generarNumeroOrden() {
+    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let numero = '#';
+    for (let i = 0; i < 2; i++) {
+        numero += letras.charAt(Math.floor(Math.random() * letras.length));
+    }
+    for (let i = 0; i < 4; i++) {
+        numero += Math.floor(Math.random() * 10);
+    }
+    return numero;
+}
+
+// Función para verificar si el número de orden ya existe
+async function existeNumeroOrden(db, numeroOrden) {
+    const [rows] = await db.query('SELECT 1 FROM ordenes_de_compra WHERE numero_orden = ?', [numeroOrden]);
+    return rows.length > 0;
+}
+
 
 //--------------------------ENPOINTS PARA TOKEN---------------------------------
 
