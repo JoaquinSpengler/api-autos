@@ -1139,7 +1139,7 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
             'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, ?, ?)',
             [id_proveedor, 'creada', numeroOrden] 
         );
-        const idOrdenDeCompra = result.insertId;
+        const id_orden_de_compra = result.insertId;
 
         console.log('Orden de compra insertada con ID:', idOrdenDeCompra);
 
