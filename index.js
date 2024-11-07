@@ -1525,6 +1525,26 @@ app.post('/api/rechazar-ruta', async (req, res) => {
         res.status(500).json({ error: 'Error al rechazar ruta' });
     }
 });
+// Endpoint para completar una ruta
+app.post('/api/completar-ruta', async (req, res) => {
+    try {
+        const { id_ruta } = req.body;
+        const db = await getConnection();
+        
+        // Actualiza el estado a 'completa'
+        const query = `
+            UPDATE Rutas 
+            SET estado = 'completa' 
+            WHERE id_ruta = ?;
+        `;
+        await db.query(query, [id_ruta]);
+        
+        res.json({ message: 'Ruta completada exitosamente' });
+    } catch (err) {
+        console.error('Error al completar ruta:', err);
+        res.status(500).json({ error: 'Error al completar ruta' });
+    }
+});
 
 
 // Exportar la app para Vercel
