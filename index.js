@@ -1385,8 +1385,7 @@ app.get('/api/informes/obtener-informes-misma-ubicacion', async (req, res) => {
     }
   });
 
-// Endpoint para obtener los productos correspondientes a cada informe
-app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) => {
+  app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) => {
     const idInforme = req.params.idInforme;
 
     try {
@@ -1398,8 +1397,9 @@ app.get('/api/informes/obtener-productos-informe/:idInforme', async (req, res) =
                 p.modelo, 
                 ip.cantidad AS cantidad_utilizada, 
                 c.proveedor_id,
-                p.cantidad,                -- Agregar cantidad
-                p.cantidad_minima        -- Agregar cantidad_minima
+                p.cantidad,
+                p.cantidad_minima,
+                p.id_producto           -- Agregar p.id_producto
             FROM informe_productos ip
             JOIN productos p ON ip.id_producto = p.id_producto
             JOIN categorias c ON p.categoria = c.id
