@@ -1134,43 +1134,36 @@ async function existeNumeroOrden(db, numeroOrden) {
 
 // Endpoint para generar ordenes de compra automaticas
 
-app.post('/api/ordenes-de-compra/generar-ordenes', async (req, res) => {
+app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {  // Cambia la ruta a /generar-orden
     try {
-      const db = await getConnection();
-  
-      // 1. Obtener los productos con cantidad menor a la cantidad mínima
-      const [productos] = await db.query(
-        `SELECT p.nombre, c.id_proveedor, p.cantidad_minima, p.id_producto
-         FROM productos p
-         JOIN categorias c ON p.categoria = c.id_categoria
-         WHERE p.cantidad < p.cantidad_minima`
-      );
-  
-      // 2. Generar una orden de compra para cada producto
-      for (const producto of productos) {
-        const { id_proveedor, cantidad_minima, id_producto } = producto;
-  
-        // Crear una nueva orden de compra
+        const db = await getConnection();
+        const { id_proveedor, cantidad_minima, id_producto } = req.body;  // Recibe los datos del producto
+
+        // Generar número de orden único
+        let numeroOrden;
+        do {
+            numeroOrden = generarNumeroOrden();
+        } while (await existeNumeroOrden(db, numeroOrden));
+
+        // Crear una nueva orden de compra con el número de orden generado
         const [result] = await db.query(
-          'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado) VALUES (?, NOW(), 0, "creada")',
-          [id_proveedor]
+            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, "creada", ?)',
+            [id_proveedor, numeroOrden] 
         );
         const idOrdenDeCompra = result.insertId;
-  
+
         // Agregar el producto a la orden de compra
         await db.query(
-          'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-          [idOrdenDeCompra, id_producto, cantidad_minima * 2]
+            'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
+            [idOrdenDeCompra, id_producto, cantidad_minima * 2]
         );
-      }
-  
-      res.json({ message: 'Órdenes de compra generadas correctamente' });
-    } catch (error) {
-      console.error('Error al generar las órdenes de compra:', error);
-      res.status(500).json({ error: 'Error al generar las órdenes de compra' });
-    }
-  });
 
+        res.status(201).json({ message: 'Orden de compra generada correctamente' }); // Devuelve un código 201 Created
+    } catch (error) {
+        console.error('Error al generar la orden de compra:', error);
+        res.status(500).json({ error: 'Error al generar la orden de compra' });
+    }
+});
 
 //--------------------------ENPOINTS PARA TOKEN---------------------------------
 
