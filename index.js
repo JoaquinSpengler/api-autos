@@ -1136,40 +1136,7 @@ async function existeNumeroOrden(db, numeroOrden) {
 
 app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
     try {
-        console.log('Petición recibida para generar orden de compra:', req.body); // Log de la petición recibida
-
-        const db = await getConnection();
-        const { id_proveedor, cantidad_minima, id_producto } = req.body;
-
-        console.log('Datos del producto:', { id_proveedor, cantidad_minima, id_producto }); // Log de los datos del producto
-
-        // Generar número de orden único
-        let numeroOrden;
-        do {
-            numeroOrden = generarNumeroOrden();
-            console.log('Número de orden generado:', numeroOrden); // Log del número de orden generado
-        } while (await existeNumeroOrden(db, numeroOrden));
-
-        console.log('Insertando orden de compra en la base de datos...'); // Log antes de insertar la orden
-
-        // Crear una nueva orden de compra con el número de orden generado
-        const [result] = await db.query(
-            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), 0, "creada", ?)',
-            [id_proveedor, numeroOrden] 
-        );
-        const idOrdenDeCompra = result.insertId;
-
-        console.log('Orden de compra insertada con ID:', idOrdenDeCompra); // Log después de insertar la orden
-
-        console.log('Insertando producto en la orden de compra...'); // Log antes de insertar el producto
-
-        // Agregar el producto a la orden de compra
-        await db.query(
-            'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
-            [idOrdenDeCompra, id_producto, cantidad_minima * 2]
-        );
-
-        console.log('Producto insertado en la orden de compra'); // Log después de insertar el producto
+        console.log("Orden de compra generada"); 
 
         res.status(201).json({ message: 'Orden de compra generada correctamente' });
     } catch (error) {
