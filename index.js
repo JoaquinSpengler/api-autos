@@ -1590,6 +1590,39 @@ app.post('/api/completar-ruta', async (req, res) => {
     }
 });
 
+app.post("/api/login", async (req, res) => {
+    const { email, password } = req.body;
+  
+    try {
+      const connection = await mysql.createConnection(dbConfig);
+  
+      const [rows] = await connection.execute(
+        "SELECT * FROM usuario WHERE email = ?",
+        [email]
+      );
+  
+      if (rows.length === 0 || rows[0].password !== password) {
+        return res.status(401).json({ message: "Credenciales inválidas" });
+      }
+  
+      const user = rows[0];
+  
+      await connection.end();
+      return res
+        .status(200)
+        .json({
+          message: "Inicio de sesión exitoso",
+          user: user,
+          role: user.rol,
+        });
+    } catch (error) {
+      console.error("Error en el login:", error);
+      res
+        .status(500)
+        .json({ message: "Error interno del servidor", error: error.message });
+    }
+  });
+
 
 // Exportar la app para Vercel
 export default app;
