@@ -972,42 +972,50 @@ app.put('/api/ordenes_de_compra/:id/inactivar', async (req, res) => {
 
 app.post('/api/ordenes_de_compra/:id/confirmar_recepcion', async (req, res) => {
     const { id } = req.params;
-    const { productos } = req.body; // Espera un array de productos con id_producto y cantidadRecibida
+    const { productos } = req.body;
     const db = await getConnection();
-
+  
     try {
-        // Verificar si la orden de compra existe
-        const [orden] = await db.query('SELECT * FROM ordenes_de_compra WHERE id_orden_de_compra = ?', [id]);
-        if (!orden) {
-            return res.status(404).json({ error: 'Orden de compra no encontrada' });
-        }
-
-        // Iterar sobre los productos y actualizar o insertar en recepciones_productos
-        for (const producto of productos) {
-            const { id_producto, cantidadRecibida } = producto;
-
-            // Actualizar la cantidad recibida
-            await db.query(
-                `INSERT INTO recepciones_productos (id_orden_de_compra, id_producto, cantidad_recibida, fecha_recepcion) 
-                 VALUES (?, ?, ?, NOW())
-                 ON DUPLICATE KEY UPDATE cantidad_recibida = ?`,
-                [id, id_producto, cantidadRecibida, cantidadRecibida]
-            );
-        }
-
-        // Actualizar el estado de la orden a "completada"
+      // Verificar si la orden de compra existe
+      const [orden] = await db.query('SELECT * FROM ordenes_de_compra WHERE id_orden_de_compra = ?', [id]);
+      if (!orden) {
+        return res.status(404).json({ error: 'Orden de compra no encontrada' });
+      }
+  
+      // Iterar sobre los productos y actualizar la recepción y el precio
+      for (const producto of productos) {
+        const { id_producto, cantidadRecibida, precio } = producto;
+  
+        // Actualizar la cantidad recibida
         await db.query(
-            'UPDATE ordenes_de_compra SET estado = ? WHERE id_orden_de_compra = ?',
-            ['completada', id]
+          `INSERT INTO recepciones_productos (id_orden_de_compra, id_producto, cantidad_recibida, fecha_recepcion) 
+           VALUES (?, ?, ?, NOW())
+           ON DUPLICATE KEY UPDATE cantidad_recibida = ?`,
+          [id, id_producto, cantidadRecibida, cantidadRecibida]
         );
-
-        res.status(200).json({ message: 'Recepción de productos confirmada y orden de compra completada.' });
+  
+        // Actualizar el precio del producto
+        if (precio) {
+          await db.query(
+            'UPDATE productos SET precio = ? WHERE id_producto = ?',
+            [precio, id_producto]
+          );
+        }
+      }
+  
+      // Actualizar el estado de la orden a "completada"
+      await db.query(
+        'UPDATE ordenes_de_compra SET estado = ? WHERE id_orden_de_compra = ?',
+        ['completada', id]
+      );
+  
+      res.status(200).json({ message: 'Recepción de productos confirmada y precios actualizados.' });
     } catch (err) {
-        console.error('Error al confirmar la recepción de productos:', err);
-        res.status(500).json({ error: 'Error al confirmar la recepción de productos', details: err.message });
+      console.error('Error al confirmar la recepción de productos:', err);
+      res.status(500).json({ error: 'Error al confirmar la recepción de productos', details: err.message });
     }
-});
-
+  });
+  
 // Endpoint para obtener las ordenes de compra y confirmaciones de recepcion
 
 app.get('/api/ordenes_de_compra', async (req, res) => {
