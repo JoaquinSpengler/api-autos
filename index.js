@@ -156,31 +156,37 @@ app.put('/api/editar_auto/:id', async (req, res) => {
     }
 });
 
-app.delete("/api/autos/eliminar_auto/:nro_patente", (req, res) => {
-    const { nro_patente } = req.params; // Obtener el nro_patente desde los parámetros de la URL
-    console.log("nro_patente recibido:", nro_patente);
+app.delete("/api/autos/eliminar_auto/:id", async (req, res) => {
+    const {id} = req.params;
+    console.log("Número de patente recibido para eliminar:", id); // Verificar el valor recibido
     
-    if (!nro_patente) {
-      return res.status(400).json({ error: "Se debe proporcionar el número de patente." });
+    if (!id) {
+        return res.status(400).json({ error: "Se debe proporcionar el número de patente." });
     }
-  
-    // Consulta para eliminar el auto de la base de datos
-    const query = "DELETE FROM autos WHERE nro_patente = ?";
-  
-    db.query(query, [nro_patente], (err, result) => {
-      if (err) {
-        console.error("Error al eliminar el auto:", err);
-        return res.status(500).json({ error: "Hubo un error al eliminar el auto." });
-      }
-  
-      // Verifica si se eliminó algún registro
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "El auto no fue encontrado." });
-      }
-  
-      res.status(200).json({ message: "Auto eliminado exitosamente." });
-    });
-  });
+
+    try {
+        const connection = await getConnection();
+        console.log("Conexión a la base de datos establecida.");
+
+        const query = "DELETE FROM autos WHERE id = ?";
+        const [result] = await connection.execute(query, [id]);
+        console.log("Resultado de la consulta:", result); // Verificar el resultado de la consulta
+
+        await connection.end();
+        console.log("Conexión cerrada.");
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "El auto no fue encontrado." });
+        }
+
+        res.status(200).json({ message: "Auto eliminado exitosamente." });
+    } catch (err) {
+        console.error("Error al eliminar el auto:", err); // Ver el error específico
+        res.status(500).json({ error: "Hubo un error al eliminar el auto." });
+    }
+});
+
+
 // ----------------------------------- MECANICOS ENDPOINTS -----------------------------------
 
 // Endpoint para obtener todos los mecánicos
