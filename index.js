@@ -1548,6 +1548,25 @@ app.post('/api/rutas', async (req, res) => {
         res.status(500).json({ error: 'Error al agregar ruta' });
     }
 });
+// Endpoint para asignar un auto
+app.post('/api/asignar-auto', async (req, res) => {
+    const { patente_auto, marca_auto, conductor_asignado } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            INSERT INTO asignaciones_autos (patente_auto, marca_auto, conductor_asignado)
+            VALUES (?, ?, ?)
+        `;
+
+        await db.query(query, [patente_auto, marca_auto, conductor_asignado]);
+
+        res.json({ message: 'Asignación de auto realizada con éxito' });
+    } catch (err) {
+        console.error('Error al asignar auto:', err);
+        res.status(500).json({ error: 'Error al asignar auto' });
+    }
+});
 
 // Endpoint para obtener todas las rutas
 app.get('/api/ver-rutas', async (req, res) => {
