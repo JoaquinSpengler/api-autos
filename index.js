@@ -10,12 +10,7 @@ const app = express();
 // Configuración de CORS
 app.use(cors({
     origin: [
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        'http://localhost:5175',
-        'http://localhost:5180',
-        'http://localhost:5182',
-        'https://radiador-spring-tp.vercel.app'
+        '*'
       ], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
