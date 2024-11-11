@@ -50,6 +50,32 @@ app.get('/api/obtener_autos', async (req, res) => {
     }
 });
 
+//obtener autos que estan disponibles
+app.get('/api/obtener_autos', async (req, res) => {
+    try {
+        const db = await getConnection();
+
+        // Primero traemos todos los autos de la tabla "autos"
+        const [autos] = await db.query('SELECT * FROM autos');
+
+        // Luego, traemos los autos que están asignados en la tabla "asignaciones_autos"
+        const [asignaciones] = await db.query('SELECT patente_auto FROM asignaciones_autos');
+
+        // Extraemos las patentes de los autos asignados
+        const asignados = asignaciones.map((asignacion) => asignacion.patente_auto);
+
+        // Filtramos los autos disponibles (aquellos cuya patente no esté en la tabla "asignaciones_autos")
+        const autosDisponibles = autos.filter((auto) => !asignados.includes(auto.patente));
+
+        // Devolvemos los autos disponibles en la respuesta
+        res.json(autosDisponibles);
+    } catch (err) {
+        console.error('Error al obtener autos:', err);
+        res.status(500).json({ error: 'Error al obtener autos' });
+    }
+});
+
+
 // Endpoint para obtener un auto por ID
 app.get('/api/autos/:id', async (req, res) => {
     const autoId = req.params.id;
