@@ -1502,14 +1502,15 @@ app.post('/api/rutas', async (req, res) => {
         trazado,
         estado,
         distancia_total_km,
-        id_gerente
+        id_gerente,
+        patente_auto
     } = req.body;
 
     try {
         const db = await getConnection();
         const query = `
-            INSERT INTO Rutas (conductor, dni_conductor, latitudA, longitudA, latitudB, longitudB, trazado, estado, distancia_total_km, id_gerente)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO Rutas (conductor, dni_conductor, latitudA, longitudA, latitudB, longitudB, trazado, estado, distancia_total_km, id_gerente, patente_auto)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const [result] = await db.query(query, [
@@ -1522,7 +1523,8 @@ app.post('/api/rutas', async (req, res) => {
             JSON.stringify(trazado), // Convertir el trazado a JSON
             estado || 'pendiente', // Valor por defecto 'pendiente' si no se proporciona
             distancia_total_km,
-            id_gerente
+            id_gerente,
+            patente_auto
         ]);
 
         res.json({
@@ -1537,7 +1539,9 @@ app.post('/api/rutas', async (req, res) => {
             trazado,
             estado,
             distancia_total_km,
-            id_gerente
+            id_gerente,
+            patente_auto
+
         });
     } catch (err) {
         console.error('Error al agregar ruta:', err);
