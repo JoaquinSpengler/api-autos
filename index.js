@@ -1543,10 +1543,15 @@ app.post('/api/rutas', async (req, res) => {
             patente_auto
 
         });
-    } catch (err) {
-        console.error('Error al agregar ruta:', err);
-        res.status(500).json({ error: 'Error al agregar ruta' });
-    }
+    } catch (error) {
+        console.error("Error al enviar la ruta:", error.response ? error.response.data : error);
+        Swal.fire({
+          title: "Error",
+          text: "Hubo un error al enviar la ruta. " + (error.response ? error.response.data : ""),
+          icon: "error",
+        });
+      }
+      
 });
 // Endpoint para asignar un auto
 app.post('/api/asignar-auto', async (req, res) => {
