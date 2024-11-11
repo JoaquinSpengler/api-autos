@@ -1664,7 +1664,7 @@ app.post('/api/completar-ruta', async (req, res) => {
         res.status(500).json({ error: 'Error al completar ruta' });
     }
 });
-
+//--------------------------------usuarios------------------------
 app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
   
@@ -1697,6 +1697,26 @@ app.post("/api/login", async (req, res) => {
         .json({ message: "Error interno del servidor", error: error.message });
     }
   });
+
+  // Endpoint para obtener los conductores habilitados
+app.get('/api/conductores-habilitados', async (req, res) => {
+    try {
+        const db = await getConnection();
+
+        // Query para obtener los usuarios con rol de "operador" y que estén habilitados
+        const [conductores] = await db.query(`
+            SELECT id_usuario, nombre, apellido, dni 
+            FROM usuario 
+            WHERE rol = 'operador' AND habilitado = 1
+        `);
+
+        // Enviar la respuesta con los datos de los conductores
+        res.json(conductores);
+    } catch (err) {
+        console.error('Error al obtener los conductores habilitados:', err);
+        res.status(500).json({ error: 'Error al obtener los conductores habilitados' });
+    }
+});
 
 
 // Exportar la app para Vercel
