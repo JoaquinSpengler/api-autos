@@ -51,7 +51,7 @@ app.get('/api/obtener_autos', async (req, res) => {
 });
 
 //obtener autos que estan disponibles
-app.get('/api/obtener_autos', async (req, res) => {
+app.get('/api/ver-autos-disponibles', async (req, res) => {
     try {
         const db = await getConnection();
 
