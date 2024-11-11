@@ -10,7 +10,12 @@ const app = express();
 // Configuración de CORS
 app.use(cors({
     origin: [
-        '*'
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:5175',
+        'http://localhost:5180',
+        'http://localhost:5182',
+        'https://radiador-spring-tp.vercel.app'
       ], // Permitir ambos orígenes
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -1492,6 +1497,7 @@ app.put('/api/informes/:id/confirmar', async (req, res) => {
 
 //-----------------------------RUTAS-------------------------------
 
+// Endpoint para agregar una nueva ruta
 app.post('/api/rutas', async (req, res) => {
     const {
         conductor,
@@ -1506,11 +1512,6 @@ app.post('/api/rutas', async (req, res) => {
         id_gerente,
         patente_auto
     } = req.body;
-
-    // Validar los datos requeridos
-    if (!conductor || !dni_conductor || !latitudA || !longitudA || !latitudB || !longitudB || !distancia_total_km || !id_gerente || !patente_auto) {
-        return res.status(400).json({ message: 'Faltan datos obligatorios' });
-    }
 
     try {
         const db = await getConnection();
@@ -1527,13 +1528,12 @@ app.post('/api/rutas', async (req, res) => {
             latitudB,
             longitudB,
             JSON.stringify(trazado), // Convertir el trazado a JSON
-            estado || 'pendiente', // Valor por defecto 'pendiente'
+            estado || 'pendiente', // Valor por defecto 'pendiente' si no se proporciona
             distancia_total_km,
             id_gerente,
             patente_auto
         ]);
 
-        // Respuesta exitosa
         res.json({
             message: 'Ruta agregada exitosamente',
             id_ruta: result.insertId,
@@ -1548,17 +1548,18 @@ app.post('/api/rutas', async (req, res) => {
             distancia_total_km,
             id_gerente,
             patente_auto
+
         });
     } catch (error) {
-        // Respuesta con error
-        console.error("Error al enviar la ruta:", error);
-        res.status(500).json({
-            message: "Hubo un error al enviar la ruta",
-            error: error.message || error
+        console.error("Error al enviar la ruta:", error.response ? error.response.data : error);
+        Swal.fire({
+          title: "Error",
+          text: "Hubo un error al enviar la ruta. " + (error.response ? error.response.data : ""),
+          icon: "error",
         });
-    }
+      }
+      
 });
-
 // Endpoint para asignar un auto
 app.post('/api/asignar-auto', async (req, res) => {
     const { patente_auto, marca_auto, conductor_asignado } = req.body;
