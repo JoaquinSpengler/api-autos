@@ -1490,58 +1490,83 @@ app.put('/api/informes/:id/confirmar', async (req, res) => {
 
 //-----------------------------RUTAS-------------------------------
 
-// Endpoint para agregar una nueva ruta y registrar la asignación de auto
+// Endpoint para agregar una nueva ruta
 app.post('/api/rutas', async (req, res) => {
     const {
-      conductor,
-      dni_conductor,
-      latitudA,
-      longitudA,
-      latitudB,
-      longitudB,
-      trazado,
-      estado,
-      distancia_total_km,
-      id_gerente,
-      patente_auto
-    } = req.body;
-  
-    try {
-      const db = await getConnection();
-  
-      // Insertar en la tabla de Rutas
-      const queryRuta = `
-        INSERT INTO Rutas (conductor, dni_conductor, latitudA, longitudA, latitudB, longitudB, trazado, estado, distancia_total_km, id_gerente, patente_auto)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      await db.query(queryRuta, [
         conductor,
         dni_conductor,
         latitudA,
         longitudA,
         latitudB,
         longitudB,
-        JSON.stringify(trazado),
-        estado || 'pendiente',
+        trazado,
+        estado,
         distancia_total_km,
         id_gerente,
         patente_auto
-      ]);
-  
-      // Insertar en la tabla de asignaciones_autos
-      const queryAsignacion = `
-        INSERT INTO asignaciones_autos (patente_auto, marca_auto, conductor_asignado)
-        VALUES (?, ?, ?)
-      `;
-      await db.query(queryAsignacion, [patente_auto, req.body.marca_auto, conductor]);
-  
-      res.json({ message: 'Ruta y asignación de auto registradas con éxito' });
+    } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            INSERT INTO Rutas (conductor, dni_conductor, latitudA, longitudA, latitudB, longitudB, trazado, estado, distancia_total_km, id_gerente, patente_auto)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const [result] = await db.query(query, [
+            conductor,
+            dni_conductor,
+            latitudA,
+            longitudA,
+            latitudB,
+            longitudB,
+            JSON.stringify(trazado), // Convertir el trazado a JSON
+            estado || 'pendiente', // Valor por defecto 'pendiente' si no se proporciona
+            distancia_total_km,
+            id_gerente,
+            patente_auto
+        ]);
+
+        res.json({
+            message: 'Ruta agregada exitosamente',
+            id_ruta: result.insertId,
+            conductor,
+            dni_conductor,
+            latitudA,
+            longitudA,
+            latitudB,
+            longitudB,
+            trazado,
+            estado,
+            distancia_total_km,
+            id_gerente,
+            patente_auto
+
+        });
     } catch (err) {
-      console.error('Error al agregar ruta y asignación:', err);
-      res.status(500).json({ error: 'Error al agregar ruta y asignación' });
+        console.error('Error al agregar ruta:', err);
+        res.status(500).json({ error: 'Error al agregar ruta' });
     }
-  });
-  
+});
+// Endpoint para asignar un auto
+app.post('/api/asignar-auto', async (req, res) => {
+    const { patente_auto, marca_auto, conductor_asignado } = req.body;
+
+    try {
+        const db = await getConnection();
+        const query = `
+            INSERT INTO asignaciones_autos (patente_auto, marca_auto, conductor_asignado)
+            VALUES (?, ?, ?)
+        `;
+
+        await db.query(query, [patente_auto, marca_auto, conductor_asignado]);
+
+        res.json({ message: 'Asignación de auto realizada con éxito' });
+    } catch (err) {
+        console.error('Error al asignar auto:', err);
+        res.status(500).json({ error: 'Error al asignar auto' });
+    }
+});
 
 // Endpoint para obtener todas las rutas
 app.get('/api/ver-rutas', async (req, res) => {
