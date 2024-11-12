@@ -1056,13 +1056,16 @@ app.post('/api/ordenes_de_compra/:id/confirmar_recepcion', async (req, res) => {
             [precio, id_producto]
           );
         }
+
+
+        // Sumar la cantidad recibida al stock del producto
+        await db.query(
+            'UPDATE productos SET cantidad = cantidad + ? WHERE id_producto = ?',
+            [cantidadRecibida, id_producto]
+        );
       }
 
-            // Sumar la cantidad recibida al stock del producto
-            await db.query(
-                'UPDATE productos SET cantidad = cantidad + ? WHERE id_producto = ?',
-                [cantidadRecibida, id_producto]
-            );
+            
         
   
       // Actualizar el estado de la orden a "completada"
