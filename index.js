@@ -943,8 +943,8 @@ app.get('/api/ordenes_de_compra', async (req, res) => {
       // Para cada orden, obtener sus productos asociados (sin cambios)
       const ordenesConProductos = await Promise.all(ordenes.map(async (orden) => {
         const [productos] = await db.query(`
-          SELECT p.id_producto, p.nombre, op.cantidad
-          FROM ordenes_productos op
+          SELECT p.id_producto, p.nombre, op.cantidad, p.precio
+          FROM ordenes_productos op 
           JOIN productos p ON op.id_producto = p.id_producto
           WHERE op.id_orden_de_compra = ?
         `, [orden.id_orden_de_compra]);
