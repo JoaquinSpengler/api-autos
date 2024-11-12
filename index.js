@@ -1143,7 +1143,7 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
 
 
 
-// Endpoint para agregar una nueva orden de compra
+/// Endpoint para agregar una nueva orden de compra
 app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
     const { id_proveedor, total, productos } = req.body; // Datos enviados desde el frontend
 
@@ -1164,15 +1164,22 @@ app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
         // Insertar la nueva orden de compra en la tabla `ordenes_de_compra`
         const [result] = await db.query(
             'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), ?, ?, ?)',
-            [id_proveedor, total, 'creada', numeroOrden] 
+            [id_proveedor, total, 'creada', numeroOrden]
         );
         const id_orden_de_compra = result.insertId; // Obtener el ID de la nueva orden
 
         // Insertar los productos de la orden en la tabla `ordenes_productos`
         for (const producto of productos) {
             const { id_producto, cantidad } = producto;
-            await db.query('INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)', 
-                [id_orden_de_compra, id_producto, cantidad]);
+
+            // Obtener el precio del producto desde la tabla `productos`
+            const [[{ precio }]] = await db.query('SELECT precio FROM productos WHERE id_producto = ?', [id_producto]);
+
+            // Insertar el producto con su precio en la tabla `ordenes_productos`
+            await db.query(
+                'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad, precio) VALUES (?, ?, ?, ?)',
+                [id_orden_de_compra, id_producto, cantidad, precio]
+            );
         }
 
         await db.commit(); // Confirmar la transacción
@@ -1184,6 +1191,7 @@ app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
         res.status(500).json({ error: 'Error al agregar la orden de compra', details: err.message });
     }
 });
+
 
 
 // Endpoint para generar ordenes de compra automaticas
