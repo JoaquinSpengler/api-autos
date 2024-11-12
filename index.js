@@ -1644,6 +1644,29 @@ app.post('/api/rechazar-ruta', async (req, res) => {
         res.status(500).json({ error: 'Error al rechazar ruta' });
     }
 });
+
+// Endpoint para obtener rutas pendientes asignadas a un conductor por DNI
+app.get('/api/rutas-pendientes/:dni', async (req, res) => {
+    try {
+        const { dni } = req.params;
+        const db = await getConnection();
+
+        // Consulta SQL para obtener las rutas pendientes basadas en el DNI del conductor
+        const query = `
+            SELECT r.* 
+            FROM Rutas r
+            JOIN usuario u ON r.dni_conductor = u.dni
+            WHERE u.dni = ? AND r.estado = 'pendiente' AND u.habilitado = 1;
+        `;
+
+        const [results] = await db.query(query, [dni]);
+        res.json(results);
+    } catch (err) {
+        console.error('Error al obtener rutas pendientes:', err);
+        res.status(500).json({ error: 'Error al obtener rutas pendientes' });
+    }
+});
+
 // Endpoint para completar una ruta
 app.post('/api/completar-ruta', async (req, res) => {
     try {
