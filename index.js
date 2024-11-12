@@ -1730,7 +1730,7 @@ app.get('/api/conductores-habilitados', async (req, res) => {
         const [conductores] = await db.query(`
             SELECT id_usuario, nombre, apellido, dni 
             FROM usuario 
-            WHERE rol = 'operador' AND habilitado = 1
+            WHERE rol = 'conductor' AND habilitado = 1
         `);
 
         // Enviar la respuesta con los datos de los conductores
