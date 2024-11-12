@@ -1274,7 +1274,7 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         console.log('Total calculado para la orden de compra:', total);
 
         // Verificar el límite máximo de precio
-        const [limite] = await db.query('SELECT limite_maximo FROM limites_precio LIMIT 1');
+        const [limite] = await db.query('SELECT max(limite_maximo) FROM limites_precio');
         const limite_maximo = limite[0]?.limite_maximo;
 
         // Determinar el estado en función de si el total supera el límite máximo
