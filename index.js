@@ -1774,6 +1774,35 @@ app.get('/api/conductores-habilitados', async (req, res) => {
     }
 });
 
+app.post("/api/registrar", async (req, res) => {
+    const {nombre, apellido, dni,habilitado,password,email,rol} = req.body;
+  
+    try {
+      const db = await mysql.createConnection(dbConfig);
+      await db.execute(
+        "INSERT INTO usuario (nombre, apellido, dni,habilitado,password,email,rol) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [nombre, apellido, dni,habilitado,password,email,rol]
+      );
+      res.json({ message: "Usuario registrado correctamente" });
+         } catch (err) {
+      console.error("Error al registrar usuario:", err);
+      res.status(500).json({ error: "Error al registrar usuario" });
+    }
+  });
+
+  app.get("/api/usuarios", async (req, res) => {
+    try {
+      const db = await mysql.createConnection(dbConfig);
+      const [rows] = await db.execute("SELECT * FROM usuario");
+      res.json(rows);
+    } catch (err) {
+      console.error("Error al obtener los usuarios:", err);
+      res.status(500).json({ error: "Error al obtener los usuarios" });
+    }
+  });
+  
+
+
 
 // Exportar la app para Vercel
 export default app;
