@@ -1130,7 +1130,7 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
         );
         
 
-        
+        console.log('Productos con recepción:', productosConRecepcion);
         res.json({
             orden, 
             productos: productosConRecepcion 
