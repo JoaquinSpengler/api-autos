@@ -712,19 +712,22 @@ app.put('/api/productos/:nombre/restar-cantidad-nombre', async (req, res) => {
       res.status(500).json({ error: 'Error al actualizar la cantidad del producto' });
     }
   });
-  //endpoint para actualizar precio
-  app.put('/api/productos/:id/actualizar_precio', async (req, res) => {
+// Endpoint para actualizar precio
+app.put('/api/productos/:id/actualizar_precio', async (req, res) => {
     const productoId = req.params.id;
-    const {precio} = req.body
+    const { precio } = req.body; // Extraer el precio del cuerpo de la solicitud
+    
     try {
         const db = await getConnection();
         const query = 'UPDATE productos SET precio = ? WHERE id_producto = ?';
-        const [result] = await db.query(query, [productoId]);
+        
+        // Pasar precio y productoId como parámetros
+        const [result] = await db.query(query, [precio, productoId]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
-       
+
         res.json({ message: 'Precio actualizado' });
     } catch (err) {
         console.error('Error al actualizar el precio del producto:', err);
