@@ -1118,19 +1118,22 @@ app.get('/api/ordenes_de_compra/:id/recepcion_productos', async (req, res) => {
 
         // Obtener los productos de la orden junto con las recepciones de productos asociadas
         const productosConRecepcion = await db.query(`
-            SELECT op.id_producto, op.cantidad AS cantidad_solicitada, 
-                   IFNULL(rp.cantidad_recibida, 0) AS cantidad_recibida
+            SELECT op.id_producto, op.cantidad AS cantidad_solicitada,
+                   IFNULL(rp.cantidad_recibida, 0) AS cantidad_recibida,
+                   p.precio AS precio_guardado
             FROM ordenes_productos op
             LEFT JOIN recepciones_productos rp ON op.id_producto = rp.id_producto 
             AND rp.id_orden_de_compra = ?
+            LEFT JOIN productos p ON op.id_producto = p.id_producto
             WHERE op.id_orden_de_compra = ?`,
             [id, id]
         );
+        
 
-        // Enviar la respuesta con la orden y los productos con sus cantidades
+        
         res.json({
-            orden, // Devolviendo el objeto de orden directamente
-            productos: productosConRecepcion // Devolviendo los productos solicitados con sus cantidades
+            orden, 
+            productos: productosConRecepcion 
         });
     } catch (err) {
         console.error('Error al obtener la orden de compra:', err);
