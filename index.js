@@ -1205,7 +1205,7 @@ app.post('/api/ordenes_de_compra/crear-orden', async (req, res) => {
 
 
 // Endpoint para generar ordenes de compra automaticas
-
+/*
 app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
     try {
         console.log('Petición recibida para generar orden de compra:', req.body);
@@ -1250,6 +1250,74 @@ app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
         res.status(500).json({ error: 'Error al generar la orden de compra' });
     }
 });
+*/
+
+// Endpoint para generar órdenes de compra automáticas
+app.post('/api/ordenes-de-compra/generar-orden', async (req, res) => {
+    try {
+        console.log('Petición recibida para generar orden de compra:', req.body);
+
+        const db = await getConnection();
+        const { id_proveedor, id_producto, cantidad_minima } = req.body;
+        const cantidad = cantidad_minima;
+
+        console.log('Datos del proveedor y producto:', { id_proveedor, id_producto, cantidad });
+
+        // Obtener el precio del producto para calcular el total
+        const [producto] = await db.query('SELECT precio FROM productos WHERE id_producto = ?', [id_producto]);
+        if (!producto || producto.length === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        const precio = producto[0].precio;
+        const total = cantidad * precio;
+
+        console.log('Total calculado para la orden de compra:', total);
+
+        // Verificar el límite máximo de precio
+        const [limite] = await db.query('SELECT limite_maximo FROM limites_precio LIMIT 1');
+        const limite_maximo = limite[0]?.limite_maximo;
+
+        // Determinar el estado en función de si el total supera el límite máximo
+        const estado = total > limite_maximo ? 'creada' : 'automática';
+
+        // Generar número de orden único
+        let numeroOrden;
+        do {
+            numeroOrden = generarNumeroOrden();
+            console.log('Número de orden generado:', numeroOrden);
+        } while (await existeNumeroOrden(db, numeroOrden));
+
+        console.log('Insertando orden de compra en la base de datos...');
+
+        // Crear una nueva orden de compra con el estado determinado y el total calculado
+        const [result] = await db.query(
+            'INSERT INTO ordenes_de_compra (id_proveedor, fecha_creacion, total, estado, numero_orden) VALUES (?, NOW(), ?, ?, ?)',
+            [id_proveedor, total, estado, numeroOrden]
+        );
+        const id_orden_de_compra = result.insertId;
+
+        console.log('Orden de compra insertada con ID:', id_orden_de_compra);
+
+        console.log('Insertando producto en la orden de compra...');
+
+        // Agregar el producto a la orden de compra con la cantidad especificada
+        await db.query(
+            'INSERT INTO ordenes_productos (id_orden_de_compra, id_producto, cantidad) VALUES (?, ?, ?)',
+            [id_orden_de_compra, id_producto, cantidad]
+        );
+
+        console.log('Producto insertado en la orden de compra');
+
+        res.status(201).json({ message: 'Orden de compra generada correctamente', estado, total });
+    } catch (error) {
+        console.error('Error al generar la orden de compra:', error);
+        res.status(500).json({ error: 'Error al generar la orden de compra' });
+    }
+});
+
+
+
+
 
 // Función para generar un número de orden aleatorio
 function generarNumeroOrden() {
